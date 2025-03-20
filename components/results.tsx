@@ -1,6 +1,7 @@
 import { Config, Result, Unicorn } from "@/lib/types";
 import { DynamicChart } from "./dynamic-chart";
 import { SkeletonCard } from "./skeleton-card";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   TableHeader,
   TableRow,
@@ -12,13 +13,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 export const Results = ({
-  results,
+  data,
   columns,
-  chartConfig,
+  visualizationType,
+  explanation
 }: {
-  results: Result[];
+  data: any[];
   columns: string[];
-  chartConfig: Config | null;
+  visualizationType: any;
+  explanation: string;
 }) => {
   const formatColumnTitle = (title: string) => {
     return title
@@ -54,14 +57,28 @@ export const Results = ({
   };
 
   return (
+    <motion.div
+        className=""
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+      <div className="rounded-xl border border-border bg-card p- sm:p-8 flex flex-col flex-grow mt-2">
+        <h2 className="text-lg sm:text-lg font-semibold text-foreground mb-4 text-gray-700">
+          Analysis Results:
+        </h2>
+        <div className="text-muted-foreground">{explanation}</div>
+    </div>
     <div className="flex-grow flex flex-col">
-      <Tabs defaultValue="table" className="w-full flex-grow flex flex-col">
+      {
+        data && (
+          <Tabs defaultValue="table" className="w-full flex-grow flex flex-col">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="table">Table</TabsTrigger>
           <TabsTrigger
             value="charts"
             disabled={
-              Object.keys(results[0] || {}).length <= 1 || results.length < 2
+              Object.keys(data[0] || {}).length <= 1 || data.length < 2
             }
           >
             Chart
@@ -83,7 +100,7 @@ export const Results = ({
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-card divide-y divide-border">
-                {results.map((company, index) => (
+                {data.map((row, index) => (
                   <TableRow key={index} className="hover:bg-muted">
                     {columns.map((column, cellIndex) => (
                       <TableCell
@@ -92,7 +109,7 @@ export const Results = ({
                       >
                         {formatCellValue(
                           column,
-                          company[column as keyof Unicorn],
+                          row[column as keyof Unicorn],
                         )}
                       </TableCell>
                     ))}
@@ -103,15 +120,18 @@ export const Results = ({
           </div>
         </TabsContent>
         <TabsContent value="charts" className="flex-grow overflow-auto">
-          <div className="mt-4">
-            {chartConfig && results.length > 0 ? (
-              <DynamicChart chartData={results} chartConfig={chartConfig} />
+          {/* <div className="mt-4">
+            {visualizationType && data.length > 0 ? (
+              <DynamicChart chartData={data} visualizationType={visualizationType} />
             ) : (
               <SkeletonCard />
             )}
-          </div>
+          </div> */}
         </TabsContent>
       </Tabs>
+        )
+      }
     </div>
+    </motion.div>
   );
 };

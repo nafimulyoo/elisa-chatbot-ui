@@ -8,52 +8,64 @@ export const SuggestedQueries = ({
 }) => {
   const suggestionQueries = [
     {
-      desktop: "Compare count of unicorns in SF and NY over time",
-      mobile: "SF vs NY",
+      desktop: "What is ELISA",
+      mobile: "What is ELISA",
     },
     {
-      desktop: "Compare unicorn valuations in the US vs China over time",
-      mobile: "US vs China",
+      desktop: "Compare FSRD and FTMD usage trends",
+      mobile: "FSRD vs FTMD trends",
     },
     {
-      desktop: "Countries with highest unicorn density",
-      mobile: "Top countries",
+      desktop: "Compare usage during exams",
+      mobile: "Exams vs normal",
     },
     {
-      desktop:
-        "Show the number of unicorns founded each year over the past two decades",
-      mobile: "Yearly count",
+      desktop: "Top 3 buildings with highest usage last year",
+      mobile: "Top 3 buildings",
     },
     {
-      desktop: "Display the cumulative total valuation of unicorns over time",
-      mobile: "Total value",
+      desktop: "Forecast CC Barat usage during holidays",
+      mobile: "CC Barat holiday forecast",
     },
     {
-      desktop:
-        "Compare the yearly funding amounts for fintech vs healthtech unicorns",
-      mobile: "Fintech vs health",
+      desktop: "Predict Labtek VI peak hours next week",
+      mobile: "Labtek VI peak forecast",
     },
     {
-      desktop: "Which cities have with most SaaS unicorns",
-      mobile: "SaaS cities",
+      desktop: "Average Engineering Physics Building usage during summer",
+      mobile: "Engineering Physics summer usage",
     },
     {
-      desktop: "Show the countries with highest unicorn density",
-      mobile: "Dense nations",
+      desktop: "Compare STEI usage: weekdays vs weekends",
+      mobile: "STEI weekdays vs weekends",
     },
     {
-      desktop:
-        "Show the number of unicorns (grouped by year) over the past decade",
-      mobile: "Decade trend",
+      desktop: "Forecast ITB usage for next academic year",
+      mobile: "ITB yearly forecast",
     },
     {
-      desktop:
-        "Compare the average valuation of AI companies vs. biotech companies",
-      mobile: "AI vs biotech",
+      desktop: "Labtek III usage trends last 3 semesters",
+      mobile: "Labtek III trends",
     },
     {
-      desktop: "Investors with the most unicorns",
-      mobile: "Top investors",
+      desktop: "Predict FTI usage during next major event",
+      mobile: "FTI event forecast",
+    },
+    {
+      desktop: "Compare CC Timur and Barat peak usage",
+      mobile: "CC Timur vs Barat peak",
+    },
+    {
+      desktop: "Total ITB usage over the past decade",
+      mobile: "Decade total usage",
+    },
+    {
+      desktop: "Forecast Labtek VII usage during winter break",
+      mobile: "Labtek VII winter forecast",
+    },
+    {
+      desktop: "Compare SF and FMIPA usage trends",
+      mobile: "SF vs FMIPA trends",
     },
   ];
 
@@ -66,7 +78,7 @@ export const SuggestedQueries = ({
       exit={{ opacity: 0 }}
       className="h-full overflow-y-auto"
     >
-      <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">
+      <h2 className="text-lg sm:text-lg font-semibold text-foreground mb-4 text-gray-700">
         Try these queries:
       </h2>
       <div className="flex flex-wrap gap-2">
