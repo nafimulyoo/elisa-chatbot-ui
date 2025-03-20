@@ -1,103 +1,160 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  generateChartConfig,
+  generateQuery,
+  runGenerateSQLQuery,
+} from "./actions";
+import { Config, Result } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { ProjectInfo } from "@/components/project-info";
+import { Results } from "@/components/results";
+import { SuggestedQueries } from "@/components/suggested-queries";
+import { QueryViewer } from "@/components/query-viewer";
+import { Search } from "@/components/search";
+import { Header } from "@/components/header";
+
+export default function Page() {
+  const [inputValue, setInputValue] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [results, setResults] = useState<Result[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
+  const [activeQuery, setActiveQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(1);
+  const [chartConfig, setChartConfig] = useState<Config | null>(null);
+
+  const handleSubmit = async (suggestion?: string) => {
+    const question = suggestion ?? inputValue;
+    if (inputValue.length === 0 && !suggestion) return;
+    clearExistingData();
+    if (question.trim()) {
+      setSubmitted(true);
+    }
+    setLoading(true);
+    setLoadingStep(1);
+    setActiveQuery("");
+    try {
+      const query = await generateQuery(question);
+      if (query === undefined) {
+        toast.error("An error occurred. Please try again.");
+        setLoading(false);
+        return;
+      }
+      setActiveQuery(query);
+      setLoadingStep(2);
+      const companies = await runGenerateSQLQuery(query);
+      const columns = companies.length > 0 ? Object.keys(companies[0]) : [];
+      setResults(companies);
+      setColumns(columns);
+      setLoading(false);
+      const generation = await generateChartConfig(companies, question);
+      setChartConfig(generation.config);
+    } catch (e) {
+      toast.error("An error occurred. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleSuggestionClick = async (suggestion: string) => {
+    setInputValue(suggestion);
+    try {
+      await handleSubmit(suggestion);
+    } catch (e) {
+      toast.error("An error occurred. Please try again.");
+    }
+  };
+
+  const clearExistingData = () => {
+    setActiveQuery("");
+    setResults([]);
+    setColumns([]);
+    setChartConfig(null);
+  };
+
+  const handleClear = () => {
+    setSubmitted(false);
+    setInputValue("");
+    clearExistingData();
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="bg-neutral-50 dark:bg-neutral-900 flex items-start justify-center p-0 sm:p-8">
+      <div className="w-full max-w-4xl min-h-dvh sm:min-h-0 flex flex-col ">
+        <motion.div
+          className="bg-card rounded-xl sm:border sm:border-border flex-grow flex flex-col"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <div className="p-6 sm:p-8 flex flex-col flex-grow">
+            <Header handleClear={handleClear} />
+            <Search
+              handleClear={handleClear}
+              handleSubmit={handleSubmit}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              submitted={submitted}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <div
+              id="main-container"
+              className="flex-grow flex flex-col sm:min-h-[420px]"
+            >
+              <div className="flex-grow h-full">
+                <AnimatePresence mode="wait">
+                  {!submitted ? (
+                    <SuggestedQueries
+                      handleSuggestionClick={handleSuggestionClick}
+                    />
+                  ) : (
+                    <motion.div
+                      key="results"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      layout
+                      className="sm:h-full min-h-[400px] flex flex-col"
+                    >
+                      {activeQuery.length > 0 && (
+                        <QueryViewer
+                          activeQuery={activeQuery}
+                          inputValue={inputValue}
+                        />
+                      )}
+                      {loading ? (
+                        <div className="h-full absolute bg-background/50 w-full flex flex-col items-center justify-center space-y-4">
+                          <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                          <p className="text-foreground">
+                            {loadingStep === 1
+                              ? "Generating SQL query..."
+                              : "Running SQL query..."}
+                          </p>
+                        </div>
+                      ) : results.length === 0 ? (
+                        <div className="flex-grow flex items-center justify-center">
+                          <p className="text-center text-muted-foreground">
+                            No results found.
+                          </p>
+                        </div>
+                      ) : (
+                        <Results
+                          results={results}
+                          chartConfig={chartConfig}
+                          columns={columns}
+                        />
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+          <ProjectInfo />
+        </motion.div>
+      </div>
     </div>
   );
 }
