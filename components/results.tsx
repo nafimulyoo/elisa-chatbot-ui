@@ -72,7 +72,7 @@ export const Results = ({
     <div className="flex-grow flex flex-col">
       {
         data && (
-          <Tabs defaultValue="table" className="w-full flex-grow flex flex-col">
+        <Tabs defaultValue="table" className="w-full flex-grow flex flex-col mt-2">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="table">Table</TabsTrigger>
           <TabsTrigger
