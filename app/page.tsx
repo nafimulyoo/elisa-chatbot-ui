@@ -60,7 +60,7 @@ export default function Page() {
 
     try {
       // Set up server-sent events
-      const newEventSource = new EventSource(`${API_URL}/api/web/stream?prompt=${question}`, {
+      const newEventSource = new EventSource(`${API_URL}/api/ask/web/stream?prompt=${question}`, {
         withCredentials: true
       });
       
