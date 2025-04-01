@@ -9,6 +9,8 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -52,10 +54,10 @@ export default function Home() {
   const [dateRange, setDateRange] = useState<{start: string, end: string}>(() => {
     // Default to current week
     const today = new Date();
+    const end = new Date(today);
+    // start date is today - 6 days
     const start = new Date(today);
-    start.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6); // End of week (Saturday)
+    start.setDate(today.getDate() - 6); 
     
     return {
       start: start.toISOString().split('T')[0],
@@ -107,7 +109,7 @@ export default function Home() {
   useEffect(() => {
     const fetchFakultas = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-fakultas`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error('Failed to fetch fakultas');
         const data = await response.json();
         setFakultasOptions(data.fakultas || []);
@@ -130,7 +132,7 @@ export default function Home() {
 
     const fetchGedung = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-gedung?fakultas=${fakultas}`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
         if (!response.ok) throw new Error('Failed to fetch gedung');
         const data = await response.json();
         setGedungOptions(data.gedung || []);
@@ -154,7 +156,7 @@ export default function Home() {
     const fetchLantai = async () => {
       try {
         const response = await fetch(
-          `${ELISA_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
         );
         if (!response.ok) throw new Error('Failed to fetch lantai');
         const data = await response.json();
@@ -177,7 +179,7 @@ export default function Home() {
         const gedung_data = gedung === "all" ? "" : gedung;
         const lantai_data = lantai === "all" ? "" : lantai;
 
-        const url = `${ELISA_URL}/api/heatmap?start=${dateRange.start}&end=${dateRange.end}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
+        const url = `${ANALYSIS_URL}/api/heatmap?start=${dateRange.start}&end=${dateRange.end}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
         
         console.log(url);
         const response = await fetch(url);
@@ -207,7 +209,7 @@ export default function Home() {
         const response = await fetch(`${ANALYSIS_URL}/api/analysis/heatmap?start=${start_date_input}&end=${end_date_input}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`);
         if (!response.ok) throw new Error('Failed to fetch analysis');
         const analysis_result = await response.json();
-        setAnalysis(analysis_result);
+        setAnalysis(analysis_result.analysis);
         console.log(analysis_result)
       } catch (err) {
         console.error("Error fetching analysis:", err);
@@ -244,10 +246,8 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Energy Usage Heatmap</h1>
-      
       {/* Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Week Starting</label>
           <input
@@ -345,17 +345,42 @@ export default function Home() {
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading data...</p>}
-      {error && <p className="text-red-500 text-center">Error: {error}</p>}
-      
-      {data && (
+      {loading ? (
+        <motion.div
+          key="results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          layout
+          className="sm:h-full min-h-[400px] flex flex-col"
+        >
+          <div className="flex-grow flex flex-col items-center justify-center">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+              Loading data...
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <>
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            layout
+            className="sm:h-full min-h-[400px] flex flex-col"
+          > {
+              data && (
         <>
           {/* Heatmap Section */}
           <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">
               Energy Usage Heatmap ({new Date(data.dates.start).toLocaleDateString()} - {new Date(data.dates.end).toLocaleDateString()})
             </h2>
-            <div className="h-[500px]">
+            <div className="h-[300px]">
               <HeatMapGrid
                 data={heatmapData}
                 xLabels={xLabels}
@@ -383,26 +408,59 @@ export default function Home() {
                 })}
               />
             </div>
-            <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-              <div className="h-80">
-                  {analysis && (
-                <ResponsiveContainer width="100%" height="100%">
-                  
-                  <p>{analysis}</p>
-                  
-                </ResponsiveContainer>
-                  )}
-              </div>
-            </div>
             <div className="flex justify-between mt-2 text-sm text-gray-600">
               <span>Low: {minValue.toFixed(2)} kWh</span>
               <span>High: {maxValue.toFixed(2)} kWh</span>
             </div>
           </div>
+          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+              <div className="h-40 overflow-y-auto">
+              {
+                            !analysis ? (   
+                              <motion.div
+                                key="analysis"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-full"
+                              >
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                  <div className="flex items-center justify-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                  </div>
+                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                    Loading analysis...
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div>
+                                {
+                                  analysis && (
+                                    <motion.div
+                                      key="analysis"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      className="h-full"
+                                    >
+                                      <p className="text-gray-700">
+                                        {analysis}
+                                      </p>
+                                    </motion.div>
+                                  )
+                                }
+                              </div>
+                            )
+                          }
+              </div>
+            </div>
 
         </>
-      )}
+              )}
+          </motion.div>
+        </>)}
     </div>
   );
 }

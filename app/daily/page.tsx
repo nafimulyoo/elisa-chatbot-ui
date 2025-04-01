@@ -9,6 +9,8 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -43,9 +45,9 @@ interface ElisaData {
   };
   prev_month_data: {
     total_daya: number;
-    avg_daya: number;
+    day_daya: number;
     total_cost: number;
-    avg_cost: number;
+    day_cost: number;
   };
 }
 
@@ -63,13 +65,13 @@ export default function Home() {
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filter states
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [fakultas, setFakultas] = useState("all");
   const [gedung, setGedung] = useState("all");
   const [lantai, setLantai] = useState("all");
-  
+
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
   const [gedungOptions, setGedungOptions] = useState<Option[]>([]);
@@ -84,7 +86,7 @@ export default function Home() {
   useEffect(() => {
     const fetchFakultas = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-fakultas`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error('Failed to fetch fakultas');
         const data = await response.json();
         setFakultasOptions(data.fakultas || []);
@@ -107,7 +109,7 @@ export default function Home() {
 
     const fetchGedung = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-gedung?fakultas=${fakultas}`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
         if (!response.ok) throw new Error('Failed to fetch gedung');
         const data = await response.json();
         setGedungOptions(data.gedung || []);
@@ -131,7 +133,7 @@ export default function Home() {
     const fetchLantai = async () => {
       try {
         const response = await fetch(
-          `${ELISA_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
         );
         if (!response.ok) throw new Error('Failed to fetch lantai');
         const data = await response.json();
@@ -143,27 +145,27 @@ export default function Home() {
     };
     fetchLantai();
   }, [gedung, fakultas]);
-  
+
 
   // Fetch data when filters change
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     const fetchData = async () => {
       console.log("fetching data");
-      setLoading(true);
-      setError(null);
       try {
         const fakultas_data = fakultas === "all" ? "" : fakultas;
         const gedung_data = gedung === "all" ? "" : gedung;
         const lantai_data = lantai === "all" ? "" : lantai;
 
-        const url = `${ELISA_URL}/api/daily?date=${date}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
-        
+        const url = `${ANALYSIS_URL}/api/daily?date=${date}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
+
         // console.log(url);
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.status}`);
         }
-        
+
         const data: ElisaData = await response.json();
         setData(data);
       } catch (err) {
@@ -175,7 +177,7 @@ export default function Home() {
     };
 
     const fetchAnalysis = async () => {
-      console.log("fetching analysis");
+      setAnalysis("");
       try {
         const fakultas_data = fakultas === "all" ? "" : fakultas;
         const gedung_data = gedung === "all" ? "" : gedung;
@@ -184,7 +186,7 @@ export default function Home() {
         const response = await fetch(`${ANALYSIS_URL}/api/analysis/daily?date=${date}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`);
         if (!response.ok) throw new Error('Failed to fetch analysis');
         const analysis_result = await response.json();
-        setAnalysis(analysis_result);
+        setAnalysis(analysis_result.analysis);
         console.log(analysis_result)
       } catch (err) {
         console.error("Error fetching analysis:", err);
@@ -199,7 +201,7 @@ export default function Home() {
     fetchAll();
 
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 60*60*1000);
+    intervalId = setInterval(fetchAll, 15 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -218,10 +220,8 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Daily Consumption Dashboard</h1>
-      
       {/* Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Date</label>
           <input
@@ -232,12 +232,12 @@ export default function Home() {
             max={new Date().toISOString().split('T')[0]} // Prevent future dates
           />
         </div>
-        
+
         {/* Fakultas Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Fakultas</label>
-          <Select 
-            value={fakultas} 
+          <Select
+            value={fakultas}
             onValueChange={(value) => {
               setFakultas(value);
               setGedung("all");
@@ -257,12 +257,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Gedung Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Gedung</label>
-          <Select 
-            value={gedung} 
+          <Select
+            value={gedung}
             onValueChange={(value) => {
               setGedung(value);
               setLantai("all");
@@ -282,12 +282,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Lantai Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Lantai</label>
-          <Select 
-            value={lantai} 
+          <Select
+            value={lantai}
             onValueChange={setLantai}
             disabled={gedung === "all" || fakultas === "all"}
           >
@@ -304,10 +304,10 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Reset Button */}
         <div className="flex items-end">
-          <button 
+          <button
             onClick={() => {
               setFakultas("all");
               setGedung("all");
@@ -320,125 +320,169 @@ export default function Home() {
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading data...</p>}
-      {error && <p className="text-red-500 text-center">Error: {error}</p>}
-      
-      {data && (
+      {loading ? (
+        <motion.div
+          key="results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          layout
+          className="sm:h-full min-h-[400px] flex flex-col"
+        >
+          <div className="flex-grow flex flex-col items-center justify-center">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+              Loading data...
+            </div>
+          </div>
+        </motion.div>
+      ) : (
         <>
-        <div className="grid g rid-cols-1 md:grid-cols-2 gap-6">
-          {/* Chart Section - Clustered Column Chart */}
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="R" fill="#8884d8" name="Phase R" />
-                  <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
-                  <Bar dataKey="T" fill="#ffc658" name="Phase T" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-              <div className="h-80">
-                  {analysis && (
-                <ResponsiveContainer width="100%" height="100%">
-                  
-                  <p>{analysis}</p>
-                  
-                </ResponsiveContainer>
-                  )}
-              </div>
-            </div>
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            layout
+            className="sm:h-full min-h-[400px] flex flex-col"
+          > {
+              data && (
+                <>
+                  {/* Summary Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Today's Summary</h2>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-semibold">Total Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.today_data.total_daya.toFixed(2)} kWh</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.today_data.total_cost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                        <h3 className="font-semibold">Average Hourly Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.today_data.avg_daya.toFixed(2)} kWh/hour</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.today_data.avg_cost.toFixed(2)} /hour</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-semibold">Total Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.total_cost?.toFixed(2) || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Average Daily Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.day_daya?.toFixed(2) || 'N/A'} kWh/day</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.day_cost?.toFixed(2) || 'N/A'} /day</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                    <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                      {/* Chart Section - Clustered Column Chart */}
+                      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                        <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={chartData}
+                              margin={{
+                                top: 20,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="time" />
+                              <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
+                              <Tooltip />
+                              <Legend />
+                              <Bar dataKey="R" fill="#8884d8" name="Phase R" />
+                              <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
+                              <Bar dataKey="T" fill="#ffc658" name="Phase T" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                        <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                        <div className="h-80">
+                          {
+                            !analysis ? (
+                              <motion.div
+                                key="analysis"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-full"
+                              >
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                  <div className="flex items-center justify-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                  </div>
+                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                    Loading analysis...
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div>
+                                {
+                                  analysis && (
+                                    <motion.div
+                                      key="analysis"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      className="h-full"
+                                    >
+                                      <p className="text-gray-700">
+                                        {analysis}
+                                      </p>
+                                    </motion.div>
+                                  )
+                                }
+                              </div>
+                            )
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    {/* Table Section */}
+                    <div className="mb-8">
+                      <h2 className="text-xl font-semibold mb-4">Hourly Data</h2>
+                      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                        <Table>
+                          <TableHeader className="bg-gray-100">
+                            <TableRow>
+                              <TableHead>Hour (UTC+7)</TableHead>
+                              <TableHead>Energy</TableHead>
+                              <TableHead>Cost</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {data.hourly_data.slice(0, 10).map((item, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{item.hour}</TableCell>
+                                <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
+                                <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                </>
 
-          </div>
-
-          {/* Table Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Hourly Data</h2>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <Table>
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <TableHead>Hour</TableHead>
-                    <TableHead>Energy (kWh)</TableHead>
-                    <TableHead>Cost (IDR)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.hourly_data.slice(0, 10).map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.hour}</TableCell>
-                      <TableCell>{item.energy.toFixed(2)}</TableCell>
-                      <TableCell>{item.cost.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {/* Summary Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Today's Summary</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold">Total Energy</h3>
-                  <p>{data.today_data.total_daya.toFixed(2)} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Power</h3>
-                  <p>{data.today_data.avg_daya.toFixed(2)} kW</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Total Cost</h3>
-                  <p>IDR {data.today_data.total_cost.toFixed(2)}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Cost</h3>
-                  <p>IDR {data.today_data.avg_cost.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold">Total Energy</h3>
-                  <p>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Power</h3>
-                  <p>{data.prev_month_data?.avg_daya?.toFixed(2) || 'N/A'} kW</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Total Cost</h3>
-                  <p>IDR {data.prev_month_data?.total_cost?.toFixed(2) || 'N/A'}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Cost</h3>
-                  <p>IDR {data.prev_month_data?.avg_cost?.toFixed(2) || 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
+              )
+            }
+          </motion.div>
         </>
       )}
     </div>

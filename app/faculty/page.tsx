@@ -9,6 +9,8 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -42,11 +44,11 @@ interface FacultyComparisonData {
       cost: number;
     };
     total: {
-      energy: number;
+      total: number;
       cost: number;
     };
     average: {
-      energy: number;
+      average: number;
       cost: number;
     };
   };
@@ -85,7 +87,7 @@ export default function FacultyComparison() {
       setLoading(true);
       setError(null);
       try {
-        const url = `${ELISA_URL}/api/compare?date=${month}`;
+        const url = `${ANALYSIS_URL}/api/compare?date=${month}`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.status}`);
@@ -106,7 +108,7 @@ export default function FacultyComparison() {
         const response = await fetch(`${ANALYSIS_URL}/api/analysis/faculty?date=${month}`);
         if (!response.ok) throw new Error('Failed to fetch analysis');
         const analysis_result = await response.json();
-        setAnalysis(analysis_result);
+        setAnalysis(analysis_result.analysis);
         console.log(analysis_result)
       } catch (err) {
         console.error("Error fetching analysis:", err);
@@ -138,17 +140,13 @@ export default function FacultyComparison() {
     return 0;
   }) : [];
 
-  // Prepare chart data (top 10 faculties by energy)
   const chartData = data?.value
-    .sort((a, b) => b.energy - a.energy)
-    .slice(0, 10) || [];
+    .sort((a, b) => b.energy - a.energy) || [];
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Faculty Energy Comparison</h1>
-      
       {/* Filter Section */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 my-6">
         <div className="flex-1">
           <label className="text-sm font-medium mb-1 block">Month</label>
           <input
@@ -161,40 +159,67 @@ export default function FacultyComparison() {
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading data...</p>}
-      {error && <p className="text-red-500 text-center">Error: {error}</p>}
-      
-      {data && (
+      {loading ? (
+        <motion.div
+          key="results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          layout
+          className="sm:h-full min-h-[400px] flex flex-col"
+        >
+          <div className="flex-grow flex flex-col items-center justify-center">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+              Loading data...
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <>
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            layout
+            className="sm:h-full min-h-[400px] flex flex-col"
+          > {
+              data && (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="font-semibold">Highest Consumption</h3>
               <p className="text-lg">{data.data.max.fakultas}</p>
-              <p>{data.data.max.energy.toFixed(2)} kWh</p>
-              <p>IDR {data.data.max.cost.toFixed(2)}</p>
+              <p><span className="font-medium">Energy: </span>{data.data.max.energy.toFixed(2)} kWh</p>
+              <p><span className="font-medium">Cost: </span>Rp{data.data.max.cost.toFixed(2)}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
               <h3 className="font-semibold">Lowest Consumption</h3>
               <p className="text-lg">{data.data.min.fakultas}</p>
-              <p>{data.data.min.energy.toFixed(2)} kWh</p>
-              <p>IDR {data.data.min.cost.toFixed(2)}</p>
+              <p><span className="font-medium">Energy: </span>{data.data.min.energy.toFixed(2)} kWh</p>
+              <p><span className="font-medium">Cost: </span>Rp{data.data.min.cost.toFixed(2)}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <h3 className="font-semibold">Total</h3>
-              <p>{data.data.total?.energy?.toFixed(2)} kWh</p>
-              <p>IDR {data.data.total?.cost?.toFixed(2)}</p>
+              <h3 className="font-semibold">Total Usage</h3>
+              <p className="text-lg">All Faculty</p>
+              <p><span className="font-medium">Energy: </span>{data.data.total?.total.toFixed(2)} kWh</p>
+              <p><span className="font-medium">Cost: </span>Rp{data.data.total?.cost.toFixed(2)} /day</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <h3 className="font-semibold">Average</h3>
-              <p>{data.data.average?.energy?.toFixed(2)} kWh</p>
-              <p>IDR {data.data.average?.cost?.toFixed(2)}</p>
+              <h3 className="font-semibold">Average per Day</h3>
+              <p className="text-lg">All Faculty</p>
+              <p><span className="font-medium">Energy: </span>{data.data.average?.average.toFixed(2)} kWh/day</p>
+              <p><span className="font-medium">Cost: </span>Rp{data.data.average?.cost.toFixed(2)} /day</p>
             </div>
           </div>
 
           {/* Horizontal Bar Chart */}
           <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Top 10 Faculties by Energy Consumption ({month})</h2>
+            <h2 className="text-xl font-semibold mb-4">Faculties by Energy Consumption ({month})</h2>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -204,7 +229,7 @@ export default function FacultyComparison() {
                     top: 20,
                     right: 30,
                     left: 100,
-                    bottom: 5,
+                    bottom: 20,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -215,25 +240,12 @@ export default function FacultyComparison() {
                     width={150}
                     tick={{ fontSize: 12 }}
                   />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      `${value} ${name === 'energy' ? 'kWh' : 'IDR'}`,
-                      name === 'energy' ? 'Energy' : 'Cost'
-                    ]}
-                  />
                   <Legend />
                   <Bar dataKey="energy" fill="#8884d8" name="Energy (kWh)">
                     <LabelList 
                       dataKey="energy" 
                       position="right" 
                       formatter={(value: number) => `${value.toFixed(1)} kWh`}
-                    />
-                  </Bar>
-                  <Bar dataKey="cost" fill="#82ca9d" name="Cost (IDR)">
-                    <LabelList 
-                      dataKey="cost" 
-                      position="right" 
-                      formatter={(value: number) => `IDR ${value.toFixed(0)}`}
                     />
                   </Bar>
                 </BarChart>
@@ -243,14 +255,45 @@ export default function FacultyComparison() {
 
           <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-              <div className="h-80">
-                  {analysis && (
-                <ResponsiveContainer width="100%" height="100%">
-                  
-                  <p>{analysis}</p>
-                  
-                </ResponsiveContainer>
-                  )}
+              <div className="h-40">
+              {
+                            !analysis ? (   
+                              <motion.div
+                                key="analysis"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-full"
+                              >
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                  <div className="flex items-center justify-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                  </div>
+                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                    Loading analysis...
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div>
+                                {
+                                  analysis && (
+                                    <motion.div
+                                      key="analysis"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      className="h-full"
+                                    >
+                                      <p className="text-gray-700">
+                                        {analysis}
+                                      </p>
+                                    </motion.div>
+                                  )
+                                }
+                              </div>
+                            )
+                          }
               </div>
             </div>
 
@@ -342,6 +385,9 @@ export default function FacultyComparison() {
               </Table>
             </div>
           </div>
+        </>
+      )}
+          </motion.div>
         </>
       )}
     </div>

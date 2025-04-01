@@ -9,6 +9,8 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -46,9 +48,9 @@ interface ElisaData {
   };
   prev_month_data: {
     total_daya: number;
-    avg_daya: number;
+    day_daya: number;
     total_cost: number;
-    avg_cost: number;
+    day_cost: number;
   };
 }
 
@@ -59,7 +61,7 @@ interface Option {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 export default function Home() {
@@ -88,7 +90,7 @@ export default function Home() {
   useEffect(() => {
     const fetchFakultas = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-fakultas`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error('Failed to fetch fakultas');
         const data = await response.json();
         setFakultasOptions(data.fakultas || []);
@@ -111,7 +113,7 @@ export default function Home() {
 
     const fetchGedung = async () => {
       try {
-        const response = await fetch(`${ELISA_URL}/api/get-gedung?fakultas=${fakultas}`);
+        const response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
         if (!response.ok) throw new Error('Failed to fetch gedung');
         const data = await response.json();
         setGedungOptions(data.gedung || []);
@@ -135,7 +137,7 @@ export default function Home() {
     const fetchLantai = async () => {
       try {
         const response = await fetch(
-          `${ELISA_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
         );
         if (!response.ok) throw new Error('Failed to fetch lantai');
         const data = await response.json();
@@ -158,7 +160,7 @@ export default function Home() {
         const gedung_data = gedung === "all" ? "" : gedung;
         const lantai_data = lantai === "all" ? "" : lantai;
 
-        const url = `${ELISA_URL}/api/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
+        const url = `${ANALYSIS_URL}/api/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
         
         console.log(url);
         const response = await fetch(url);
@@ -185,7 +187,7 @@ export default function Home() {
         const response = await fetch(`${ANALYSIS_URL}/api/analysis/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`);
         if (!response.ok) throw new Error('Failed to fetch analysis');
         const analysis_result = await response.json();
-        setAnalysis(analysis_result);
+        setAnalysis(analysis_result.analysis);
         console.log(analysis_result)
       } catch (err) {
         console.error("Error fetching analysis:", err);
@@ -218,10 +220,9 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Monthly Consumption Dashboard</h1>
       
       {/* Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Month</label>
           <input
@@ -320,12 +321,71 @@ export default function Home() {
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading data...</p>}
-      {error && <p className="text-red-500 text-center">Error: {error}</p>}
-      
-      {data && (
+      {loading ? (
+        <motion.div
+          key="results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          layout
+          className="sm:h-full min-h-[400px] flex flex-col"
+        >
+          <div className="flex-grow flex flex-col items-center justify-center">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+              Loading data...
+            </div>
+          </div>
+        </motion.div>
+      ) : (
         <>
-        <div className="grid g rid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            layout
+            className="sm:h-full min-h-[400px] flex flex-col"
+          > {
+              data && (
+                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Current Month Summary</h2>
+              
+              <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-semibold">Total Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.month_data.total_daya.toFixed(2)} kWh</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.month_data.total_cost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                        <h3 className="font-semibold">Average Daily Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.month_data.avg_daya.toFixed(2)} kWh/day</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.month_data.avg_cost.toFixed(2)} /day</p>
+                        </div>
+                </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
+<div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-semibold">Total Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.total_cost?.toFixed(2) || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Average Daily Usage</h3>
+                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.day_daya?.toFixed(2) || 'N/A'} kWh/day</p>
+                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.day_cost?.toFixed(2) || 'N/A'} /day</p>
+                        </div>
+                      </div>
+            </div>
+          </div>
+        <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
           {/* Chart Section - Clustered Column Chart */}
           <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
@@ -355,13 +415,44 @@ export default function Home() {
           <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
               <div className="h-80">
-                  {analysis && (
-                <ResponsiveContainer width="100%" height="100%">
-                  
-                  <p>{analysis}</p>
-                  
-                </ResponsiveContainer>
-                  )}
+              {
+                            !analysis ? (
+                              <motion.div
+                                key="analysis"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-full"
+                              >
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                  <div className="flex items-center justify-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                  </div>
+                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                    Loading analysis...
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div>
+                                {
+                                  analysis && (
+                                    <motion.div
+                                      key="analysis"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      className="h-full"
+                                    >
+                                      <p className="text-gray-700">
+                                        {analysis}
+                                      </p>
+                                    </motion.div>
+                                  )
+                                }
+                              </div>
+                            )
+                          }
               </div>
             </div>
           </div>
@@ -373,8 +464,8 @@ export default function Home() {
                 <TableHeader className="bg-gray-100">
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Energy (kWh)</TableHead>
-                    <TableHead>Cost (IDR)</TableHead>
+                    <TableHead>Energy</TableHead>
+                    <TableHead>Cost</TableHead>
                     <TableHead>Phase 1</TableHead>
                     <TableHead>Phase 2</TableHead>
                     <TableHead>Phase 3</TableHead>
@@ -384,64 +475,20 @@ export default function Home() {
                   {data.daily_data.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>{formatDate(item.timestamp)}</TableCell>
-                      <TableCell>{item.energy.toFixed(2)}</TableCell>
-                      <TableCell>{item.cost.toFixed(2)}</TableCell>
-                      <TableCell>{item["phase 1"].toFixed(2)}</TableCell>
-                      <TableCell>{item["phase 2"].toFixed(2)}</TableCell>
-                      <TableCell>{item["phase 3"].toFixed(2)}</TableCell>
+                      <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
+                      <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
+                      <TableCell>{item["phase 1"].toFixed(2)} kWh</TableCell>
+                      <TableCell>{item["phase 2"].toFixed(2)} kWh</TableCell>
+                      <TableCell>{item["phase 3"].toFixed(2)} kWh</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
           </div>
-
-          {/* Summary Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Current Month Summary</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold">Total Energy</h3>
-                  <p>{data.month_data.total_daya.toFixed(2)} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Daily</h3>
-                  <p>{data.month_data.avg_daya.toFixed(2)} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Total Cost</h3>
-                  <p>IDR {data.month_data.total_cost.toFixed(2)}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Daily Cost</h3>
-                  <p>IDR {data.month_data.avg_cost.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold">Total Energy</h3>
-                  <p>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Daily</h3>
-                  <p>{data.prev_month_data?.avg_daya?.toFixed(2) || 'N/A'} kWh</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Total Cost</h3>
-                  <p>IDR {data.prev_month_data?.total_cost?.toFixed(2) || 'N/A'}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Average Daily Cost</h3>
-                  <p>IDR {data.prev_month_data?.avg_cost?.toFixed(2) || 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </>
+          )}
+          </motion.div>
         </>
       )}
     </div>
