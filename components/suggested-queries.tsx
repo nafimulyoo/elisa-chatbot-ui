@@ -12,16 +12,16 @@ export const SuggestedQueries = ({
       mobile: "What is ELISA",
     },
     {
-      desktop: "Compare FSRD and FTMD usage trends",
-      mobile: "FSRD vs FTMD trends",
+      desktop:  "What is the usage trend of FSRD in the last 3 months",
+      mobile:  "What is the usage trend of FSRD in the last 3 months",
     },
     {
-      desktop: "Compare usage during exams",
-      mobile: "Exams vs normal",
+      desktop: "Total ITB usage over the past month",
+      mobile: "Total ITB usage over the past month",
     },
     {
-      desktop: "Top 3 buildings with highest usage last year",
-      mobile: "Top 3 buildings",
+      desktop: "Top 3 faculty usage in the last 3 months",
+      mobile: "Top 3 faculty usage in the last 3 months",
     },
     {
       desktop: "Forecast CC Barat usage during holidays",

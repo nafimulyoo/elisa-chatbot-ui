@@ -1,234 +1,287 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Bar,
   BarChart,
-  Line,
+  Bar,
   LineChart,
-  Area,
-  AreaChart,
-  Pie,
-  PieChart,
-  Cell,
+  Line,
+  ScatterChart,
+  Scatter,
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
   Legend,
+  ResponsiveContainer,
+  ZAxis,
+  Cell,
 } from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Config, Result } from "@/lib/types";
-import { Label } from "recharts";
-import { transformDataForMultiLineChart } from "@/lib/rechart-format";
+import { useState, useMemo } from "react";
 
-function toTitleCase(str: string): string {
-  return str
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-const colors = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-  "hsl(var(--chart-6))",
-  "hsl(var(--chart-7))",
-  "hsl(var(--chart-8))",
+const COLORS = [
+  "#8884d8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff8042",
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#A4DE6C",
+  "#D0ED57",
 ];
 
-export function DynamicChart({
+interface DynamicChartProps {
+  chartData: any[];
+  visualizationType: string;
+}
+
+export const DynamicChart = ({
   chartData,
-  chartConfig,
-}: {
-  chartData: Result[];
-  chartConfig: Config;
-}) {
-  const renderChart = () => {
-    if (!chartData || !chartConfig) return <div>No chart data</div>;
-    const parsedChartData = chartData.map((item) => {
-      const parsedItem: { [key: string]: any } = {};
-      for (const [key, value] of Object.entries(item)) {
-        parsedItem[key] = isNaN(Number(value)) ? value : Number(value);
-      }
-      return parsedItem;
+  visualizationType,
+}: DynamicChartProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  // Memoize and transform data to ensure numeric values
+  const { transformedChartData, categories, colorMap } = useMemo(() => {
+    if (!chartData || chartData.length === 0) {
+      return { transformedChartData: [], categories: [], colorMap: {} };
+    }
+
+    // Get unique categories from first column
+    const firstColumn = Object.keys(chartData[0])[0];
+    const uniqueCategories = Array.from(
+      new Set(chartData.map((item) => String(item[firstColumn])))
+    );
+
+    // Create color mapping for categories
+    const categoryColorMap: Record<string, string> = {};
+    uniqueCategories.forEach((category, index) => {
+      categoryColorMap[category] = COLORS[index % COLORS.length];
     });
 
-    chartData = parsedChartData;
-
-    const processChartData = (data: Result[], chartType: string) => {
-      if (chartType === "bar" || chartType === "pie") {
-        if (data.length <= 8) {
-          return data;
+    // Transform data ensuring numeric values for numeric columns
+    const transformed = chartData.map((item) => {
+      const newItem: { [key: string]: any } = {};
+      for (const key in item) {
+        if (Object.hasOwn(item, key)) {
+          const value = item[key];
+          // Attempt to convert to number, otherwise keep the original value
+          const numValue = Number(value);
+          newItem[key] = isNaN(numValue) ? value : numValue;
         }
-
-        const subset = data.slice(0, 20);
-        return subset;
       }
-      return data;
+      return newItem;
+    });
+
+    return {
+      transformedChartData: transformed,
+      categories: uniqueCategories,
+      colorMap: categoryColorMap,
     };
+  }, [chartData]);
 
-    chartData = processChartData(chartData, chartConfig.type);
-    // console.log({ chartData, chartConfig });
+  // Memoize numeric columns based on transformed data (skip first column if it's categorical)
+  const numericColumns = useMemo(() => {
+    if (!transformedChartData || transformedChartData.length === 0) {
+      return [];
+    }
 
-    switch (chartConfig.type) {
-      case "bar":
+    const columns = Object.keys(transformedChartData[0] || {});
+    
+    // If first column is categorical (not numeric), skip it for numeric columns
+    const firstColumn = columns[0];
+    const isFirstColumnNumeric = typeof transformedChartData[0][firstColumn] === "number";
+    
+    return columns.filter((key, index) => {
+      // Skip first column if it's not numeric
+      if (index === 0 && !isFirstColumnNumeric) return false;
+      
+      return (
+        typeof transformedChartData[0][key] === "number" &&
+        !key.toLowerCase().includes("id") &&
+        !key.toLowerCase().includes("index")
+      );
+    });
+  }, [transformedChartData]);
+
+  // For scatter plot, we need at least two numeric columns (after skipping first if categorical)
+  const canRenderScatter = numericColumns.length >= 2;
+
+  // Determine if we should cluster (for bar/line charts with multiple series)
+  const shouldCluster = numericColumns.length > 1 && 
+    (visualizationType === "bar_chart" || visualizationType === "line_chart");
+
+  const handleMouseEnter = (data: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveIndex(null);
+  };
+
+  const renderChart = () => {
+    if (!transformedChartData || transformedChartData.length === 0) {
+      return (
+        <div className="text-center p-8 text-muted-foreground">
+          No data to display.
+        </div>
+      );
+    }
+
+    switch (visualizationType) {
+      case "line_chart":
         return (
-          <BarChart data={chartData}>
+          <LineChart data={transformedChartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={chartConfig.xKey}>
-              <Label
-                value={toTitleCase(chartConfig.xKey)}
-                offset={0}
-                position="insideBottom"
-              />
-            </XAxis>
-            <YAxis>
-              <Label
-                value={toTitleCase(chartConfig.yKeys[0])}
-                angle={-90}
-                position="insideLeft"
-              />
-            </YAxis>
-            <ChartTooltip content={<ChartTooltipContent />} />
-            {chartConfig.legend && <Legend />}
-            {chartConfig.yKeys.map((key, index) => (
-              <Bar
-                key={key}
-                dataKey={key}
-                fill={colors[index % colors.length]}
-              />
-            ))}
-          </BarChart>
-        );
-      case "line":
-        const { data, xAxisField, lineFields } = transformDataForMultiLineChart(
-          chartData,
-          chartConfig,
-        );
-        const useTransformedData =
-          chartConfig.multipleLines &&
-          chartConfig.measurementColumn &&
-          chartConfig.yKeys.includes(chartConfig.measurementColumn);
-        // console.log(useTransformedData, "useTransformedData");
-        // const useTransformedData = false;
-        return (
-          <LineChart data={useTransformedData ? data : chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey={useTransformedData ? chartConfig.xKey : chartConfig.xKey}
-            >
-              <Label
-                value={toTitleCase(
-                  useTransformedData ? xAxisField : chartConfig.xKey,
-                )}
-                offset={0}
-                position="insideBottom"
-              />
-            </XAxis>
-            <YAxis>
-              <Label
-                value={toTitleCase(chartConfig.yKeys[0])}
-                angle={-90}
-                position="insideLeft"
-              />
-            </YAxis>
-            <ChartTooltip content={<ChartTooltipContent />} />
-            {chartConfig.legend && <Legend />}
-            {useTransformedData
-              ? lineFields.map((key, index) => (
-                  <Line
-                    key={key}
-                    type="monotone"
-                    dataKey={key}
-                    stroke={colors[index % colors.length]}
-                  />
-                ))
-              : chartConfig.yKeys.map((key, index) => (
-                  <Line
-                    key={key}
-                    type="monotone"
-                    dataKey={key}
-                    stroke={colors[index % colors.length]}
-                  />
-                ))}
+            <XAxis 
+              dataKey={Object.keys(transformedChartData[0])[0]} 
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Legend />
+            {shouldCluster ? (
+              numericColumns.map((column, index) => (
+                <Line
+                  key={column}
+                  type="monotone"
+                  dataKey={column}
+                  stroke={COLORS[index % COLORS.length]}
+                  activeDot={{ r: 8 }}
+                  name={column.replace(/_/g, ' ')}
+                />
+              ))
+            ) : (
+              numericColumns.length > 0 && (
+                <Line
+                  type="monotone"
+                  dataKey={numericColumns[0]}
+                  stroke={COLORS[0]}
+                  activeDot={{ r: 8 }}
+                />
+              )
+            )}
           </LineChart>
         );
-      case "area":
+
+      case "bar_chart":
         return (
-          <AreaChart data={chartData}>
+          <BarChart data={transformedChartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={chartConfig.xKey} />
-            <YAxis />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            {chartConfig.legend && <Legend />}
-            {chartConfig.yKeys.map((key, index) => (
-              <Area
-                key={key}
-                type="monotone"
-                dataKey={key}
-                fill={colors[index % colors.length]}
-                stroke={colors[index % colors.length]}
-              />
-            ))}
-          </AreaChart>
+            <XAxis 
+              dataKey={Object.keys(transformedChartData[0])[0]} 
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Legend />
+            {shouldCluster ? (
+              numericColumns.map((column, index) => (
+                <Bar
+                  key={column}
+                  dataKey={column}
+                  fill={COLORS[index % COLORS.length]}
+                  name={column.replace(/_/g, ' ')}
+                  onMouseEnter={(_, idx) => handleMouseEnter(column, idx)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {transformedChartData.map((entry, idx) => (
+                    <Cell
+                      key={`cell-${idx}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Bar>
+              ))
+            ) : (
+              numericColumns.length > 0 && (
+                <Bar
+                  dataKey={numericColumns[0]}
+                  fill={COLORS[0]}
+                  onMouseEnter={(_, idx) => handleMouseEnter(numericColumns[0], idx)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {transformedChartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[0]}
+                    />
+                  ))}
+                </Bar>
+              )
+            )}
+          </BarChart>
         );
-      case "pie":
-        return (
-          <PieChart>
-            <Pie
-              data={chartData}
-              dataKey={chartConfig.yKeys[0]}
-              nameKey={chartConfig.xKey}
-              cx="50%"
-              cy="50%"
-              outerRadius={120}
-            >
-              {chartData.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={colors[index % colors.length]}
-                />
-              ))}
-            </Pie>
-            <ChartTooltip content={<ChartTooltipContent />} />
-            {chartConfig.legend && <Legend />}
-          </PieChart>
-        );
+
+      // case "scatter_plot":
+      //   if (!canRenderScatter) {
+      //     return (
+      //       <div className="text-center p-8 text-muted-foreground">
+      //         Not enough numeric columns for scatter plot (need at least 2 numeric columns)
+      //       </div>
+      //     );
+      //   }
+
+      //   // Get the first column name (for category)
+      //   const firstColumn = Object.keys(transformedChartData[0])[0];
+        
+      //   return (
+
+      //     <ScatterChart>
+      //       <CartesianGrid strokeDasharray="3 3" />
+      //       <XAxis 
+      //         dataKey={numericColumns[0]} 
+      //         name={numericColumns[0].replace(/_/g, ' ')}
+      //         tick={{ fontSize: 12 }}
+      //       />
+      //       <YAxis 
+      //         dataKey={numericColumns[1]} 
+      //         name={numericColumns[1].replace(/_/g, ' ')}
+      //         tick={{ fontSize: 12 }}
+      //       />
+      //       <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+      //       <Legend />
+            
+      //       {/* Create a separate Scatter group for each category */}
+      //       {categories.map((category) => (
+      //         <Scatter
+      //           key={category}
+      //           name={category}
+      //           data={transformedChartData.filter(
+      //             (item) => String(item[firstColumn]) === category
+      //           )}
+      //           fill={colorMap[category]}
+      //           onMouseEnter={(_, idx) => handleMouseEnter(category, idx)}
+      //           onMouseLeave={handleMouseLeave}
+      //         >
+      //           {transformedChartData.map(({ [firstColumn]: _, ...rest }) => rest)
+      //             .filter((item) => String(item[firstColumn]) === category)
+      //             .map((entry, index) => (
+      //               <Cell
+      //                 key={`cell-${category}-${index}`}
+      //                 fill={colorMap[category]}
+      //               />
+      //             ))}
+      //         </Scatter>
+      //       ))}
+      //     </ScatterChart>
+      //   );
+
       default:
-        return <div>Unsupported chart type: {chartConfig.type}</div>;
+        return (
+          <div className="text-center p-8 text-muted-foreground">
+            Unsupported chart type: {visualizationType}
+          </div>
+        );
     }
   };
 
   return (
-    <div className="w-full flex flex-col justify-center items-center">
-      <h2 className="text-lg font-bold mb-2">{chartConfig.title}</h2>
-      {chartConfig && chartData.length > 0 && (
-        <ChartContainer
-          config={chartConfig.yKeys.reduce(
-            (acc, key, index) => {
-              acc[key] = {
-                label: key,
-                color: colors[index % colors.length],
-              };
-              return acc;
-            },
-            {} as Record<string, { label: string; color: string }>,
-          )}
-          className="h-[320px] w-full"
-        >
-          {renderChart()}
-        </ChartContainer>
-      )}
-      <div className="w-full">
-        <p className="mt-4 text-sm">{chartConfig.description}</p>
-        <p className="mt-4 text-sm">{chartConfig.takeaway}</p>
-      </div>
+    <div className="w-full h-[500px]">
+      <ResponsiveContainer width="100%" height="100%">
+        {renderChart()}
+      </ResponsiveContainer>
     </div>
   );
-}
+};

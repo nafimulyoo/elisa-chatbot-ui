@@ -58,7 +58,7 @@ export const Results = ({
 
   return (
     <motion.div
-        className=""
+        className="mb-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -68,69 +68,74 @@ export const Results = ({
           Analysis Results:
         </h2>
         <div className="text-muted-foreground">{explanation}</div>
-    </div>
-    <div className="flex-grow flex flex-col">
-      {
-        data && (
-        <Tabs defaultValue="table" className="w-full flex-grow flex flex-col mt-2">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="table">Table</TabsTrigger>
-          <TabsTrigger
-            value="charts"
-            disabled={
-              Object.keys(data[0] || {}).length <= 1 || data.length < 2
+        <div className="flex-grow flex flex-col">
+        {
+          data && (
+          <Tabs defaultValue="table" className="w-full flex-grow flex flex-col mt-8">
+            {
+              visualizationType !== null && visualizationType !== "" ? (
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="table">Table</TabsTrigger>
+                  <TabsTrigger value="charts">Chart</TabsTrigger>
+                </TabsList>
+              ) : (
+                <TabsList className="grid w-full grid-cols-1">
+                  <TabsTrigger value="table">Table</TabsTrigger>
+                </TabsList>
+              )
             }
-          >
-            Chart
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="table" className="flex-grow">
-          <div className="sm:min-h-[10px] relative">
-            <Table className="min-w-full divide-y divide-border">
-              <TableHeader className="bg-secondary sticky top-0 shadow-sm">
-                <TableRow>
-                  {columns.map((column, index) => (
-                    <TableHead
-                      key={index}
-                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                    >
-                      {formatColumnTitle(column)}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody className="bg-card divide-y divide-border">
-                {data.map((row, index) => (
-                  <TableRow key={index} className="hover:bg-muted">
-                    {columns.map((column, cellIndex) => (
-                      <TableCell
-                        key={cellIndex}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-foreground"
+
+          <TabsContent value="table" className="flex-grow">
+            <div className="relative overflow-auto max-h-[500px]">
+              <Table className="min-w-full divide-y divide-border">
+                <TableHeader className="bg-secondary sticky top-0 shadow-sm">
+                  <TableRow>
+                    {columns.map((column, index) => (
+                      <TableHead
+                        key={index}
+                        className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                       >
-                        {formatCellValue(
-                          column,
-                          row[column as keyof Unicorn],
-                        )}
-                      </TableCell>
+                        {formatColumnTitle(column)}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-        <TabsContent value="charts" className="flex-grow overflow-auto">
-          {/* <div className="mt-4">
-            {visualizationType && data.length > 0 ? (
-              <DynamicChart chartData={data} visualizationType={visualizationType} />
-            ) : (
-              <SkeletonCard />
-            )}
-          </div> */}
-        </TabsContent>
-      </Tabs>
-        )
-      }
+                </TableHeader>
+                <TableBody className="bg-card divide-y divide-border">
+                  {data.map((row, index) => (
+                    <TableRow key={index} className="hover:bg-muted">
+                      {columns.map((column, cellIndex) => (
+                        <TableCell
+                          key={cellIndex}
+                          className="px-6 py-4 whitespace-nowrap text-sm text-foreground"
+                        >
+                          {formatCellValue(
+                            column,
+                            row[column as keyof Unicorn],
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          <TabsContent value="charts" className="flex-grow overflow-auto">
+            <div className="mt-4">
+              {
+                visualizationType &&  (
+                  <DynamicChart chartData={data} visualizationType={visualizationType} />
+                )
+              }
+              {/* <p>
+                {JSON.stringify(data)}
+              </p> */}
+            </div>
+          </TabsContent>
+        </Tabs>
+          )
+        }
+      </div>
     </div>
     </motion.div>
   );
