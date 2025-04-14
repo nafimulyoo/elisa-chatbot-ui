@@ -64,6 +64,8 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+
 export default function Home() {
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,7 +86,7 @@ export default function Home() {
     // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+  
 
   // Fetch initial fakultas options
   useEffect(() => {

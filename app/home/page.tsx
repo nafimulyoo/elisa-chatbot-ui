@@ -62,6 +62,8 @@ const formatTimestamp = (timestamp: string) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+
 export default function Home() {
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -81,7 +83,7 @@ export default function Home() {
   // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+  
 
   // Fetch initial fakultas options
 
@@ -385,7 +387,7 @@ export default function Home() {
             <div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Today's Summary</h2>
+              <h2 className="text-xl font-semibold mb-4">Today{"'"}s Summary</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold">Total Usage:</h3>

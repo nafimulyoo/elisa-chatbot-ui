@@ -95,7 +95,7 @@ export default function Home() {
       }
     };
     fetchFakultas();
-  }, []);
+  }, [ANALYSIS_URL]);
 
   // Fetch gedung options when fakultas changes
   useEffect(() => {
@@ -353,7 +353,7 @@ export default function Home() {
                   {/* Summary Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-lg shadow-md">
-                      <h2 className="text-xl font-semibold mb-4">Today's Summary</h2>
+                      <h2 className="text-xl font-semibold mb-4">Today{"'"}s Summary</h2>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <h3 className="font-semibold">Total Usage</h3>

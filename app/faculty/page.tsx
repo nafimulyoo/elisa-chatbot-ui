@@ -62,6 +62,7 @@ interface FacultyComparisonData {
     specific_energy: number;
   }[];
 }
+const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function FacultyComparison() {
   const [data, setData] = useState<FacultyComparisonData | null>(null);
@@ -79,7 +80,7 @@ export default function FacultyComparison() {
   // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+  
   // fetch analysis using useEffect
   // Fetch data when month changes
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function FacultyComparison() {
       if (intervalId) clearInterval(intervalId);
     };
 
-  }, [month]);
+  }, [month, ANALYSIS_URL]);
 
   // Sort the info data
   const sortedInfo = data?.info ? [...data.info].sort((a, b) => {

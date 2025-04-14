@@ -143,7 +143,7 @@ export default function Home() {
       }
     };
     fetchGedung();
-  }, [fakultas]);
+  }, [fakultas, ANALYSIS_URL]);
 
   // Fetch lantai options when gedung changes
   useEffect(() => {
