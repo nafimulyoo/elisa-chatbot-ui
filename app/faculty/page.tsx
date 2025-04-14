@@ -79,7 +79,7 @@ export default function FacultyComparison() {
   // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  const ANALYSIS_URL = 'http://127.0.0.1:8000';
+  const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
   // fetch analysis using useEffect
   // Fetch data when month changes
   useEffect(() => {

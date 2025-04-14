@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  generateChartConfig,
-  generateQuery,
-  runGenerateSQLQuery,
-} from "./actions";
-import { Config, Result } from "@/lib/types";
+import { Config } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Results } from "@/components/results";
@@ -28,20 +23,20 @@ export default function Page() {
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [chartConfig, setChartConfig] = useState<Config | null>(null);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
-  const API_URL = 'http://127.0.0.1:8000'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Clean up the event source on unmount
+  // Clean up the fetch request on unmount
   useEffect(() => {
     return () => {
-      if (eventSource) {
-        eventSource.close();
+      if (abortController) {
+        abortController.abort();
       }
     };
-  }, [eventSource]);
+  }, [abortController]);
 
-  const handleSubmitStreaming = async (suggestion?: string) => {
+  const handleSubmit = async (suggestion?: string) => {
     const question = suggestion ?? inputValue;
     if (inputValue.length === 0 && !suggestion) return;
     clearExistingData();
@@ -53,72 +48,62 @@ export default function Page() {
     setLoadingProgress(0);
     setActiveQuery("");
 
-    // Close previous event source if exists
-    if (eventSource) {
-      eventSource.close();
+    // Abort previous request if exists
+    if (abortController) {
+      abortController.abort();
     }
 
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
-      // Set up server-sent events
-      const newEventSource = new EventSource(`${API_URL}/api/web/stream?prompt=${question}`, {
-        withCredentials: true
+      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}`, {
+        credentials: 'include',
+        signal: controller.signal
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
       
-      setEventSource(newEventSource);
+      setLoadingStep("Processing results...");
+      setLoadingProgress(100);
 
-      newEventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setLoadingStep(data.status);
-        setLoadingProgress(data.progress);
+      // Process the results
+      const result: any = responseData
+      console.log("Result:", result);
 
-        if (data.progress === 100 && data.result) {
-
-          newEventSource.close();
-          setEventSource(null);
-          setLoading(false);
-          
-          // Process the results
-          const result: any = data.result;
-
-          if (result.length > 0) {
-            // example of result: [{"data": [{...}, {...}], "explanation": "explanation text"}, {"visualization_type": "bar_chart"}, 
-            // {"data": [{...}, {...}], "explanation": "explanation text"}, {"visualization_type": "line_chart"},
-            // {"data": [{...}, {...}], "explanation": "explanation text"}, {"visualization_type": "area_chart"}]
-            // loop through all results and display them
-
-            // loop through all result
-            for (let i = 0; i < result.length; i++) {
-              setExplanations((prev: any) => [...prev, result[i].explanation]);
-              // if data exists, add it to the state
-              console.log(result[i])
-              if (result[i].data.length > 0) {
-                setData((prev: any) => [...prev, result[i].data]);
-                setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
-                setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
-              }
-            }
+      if (result?.length > 0) {
+        for (let i = 0; i < result.length; i++) {
+          setExplanations((prev: any) => [...prev, result[i].explanation]);
+          if (result[i].data?.length > 0) {
+            setData((prev: any) => [...prev, result[i].data]);
+            setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
+            setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
           }
         }
-      };
-
-      newEventSource.onerror = (error) => {
-        console.error("EventSource error:", error);
-        newEventSource.close();
-        setEventSource(null);
-        setLoading(false);
-        toast.error("Connection error. Please try again.");
-      };
-    } catch (e) {
-      console.error("Error setting up streaming:", e);
-      toast.error("An error occurred. Please try again.");
+      }
+      
       setLoading(false);
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log('Fetch aborted');
+      } else {
+        console.error("Error fetching data:", e);
+        toast.error("An error occurred. Please try again.");
+      }
+      setLoading(false);
+    } finally {
+      setAbortController(null);
     }
   };
 
   const handleSuggestionClick = async (suggestion: string) => {
     setInputValue(suggestion);
     try {
-      await handleSubmitStreaming(suggestion);
+      await handleSubmit(suggestion);
     } catch (e) {
       toast.error("An error occurred. Please try again.");
     }
@@ -132,10 +117,10 @@ export default function Page() {
     setVisualizationType([]);
     setChartConfig(null);
     
-    // Close any active event source
-    if (eventSource) {
-      eventSource.close();
-      setEventSource(null);
+    // Abort any active request
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
     }
   };
 
@@ -158,7 +143,7 @@ export default function Page() {
             <Header handleClear={handleClear} />
             <Search
               handleClear={handleClear}
-              handleSubmit={handleSubmitStreaming} // Use streaming version
+              handleSubmit={handleSubmit}
               inputValue={inputValue}
               setInputValue={setInputValue}
               submitted={submitted}
@@ -204,7 +189,6 @@ export default function Page() {
                           </p>
                         </div>
                       ) : (
-                        // loop through all explanations and display them
                         explanations.map((explanation: any, index: number) => (
                           <Results
                             key={index}

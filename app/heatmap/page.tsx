@@ -76,7 +76,7 @@ export default function Home() {
   // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  const ANALYSIS_URL = 'http://127.0.0.1:8000';
+  const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 
   // Prepare heatmap data
   const prepareHeatmapData = () => {
