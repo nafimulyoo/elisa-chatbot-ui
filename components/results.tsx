@@ -1,7 +1,5 @@
-import { Config, Result, Unicorn } from "@/lib/types";
 import { DynamicChart } from "./dynamic-chart";
-import { SkeletonCard } from "./skeleton-card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   TableHeader,
   TableRow,
@@ -110,7 +108,7 @@ export const Results = ({
                         >
                           {formatCellValue(
                             column,
-                            row[column as keyof Unicorn],
+                            row[column],
                           )}
                         </TableCell>
                       ))}
@@ -127,9 +125,6 @@ export const Results = ({
                   <DynamicChart chartData={data} visualizationType={visualizationType} />
                 )
               }
-              {/* <p>
-                {JSON.stringify(data)}
-              </p> */}
             </div>
           </TabsContent>
         </Tabs>

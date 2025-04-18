@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Config } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Results } from "@/components/results";
 import { SuggestedQueries } from "@/components/suggested-queries";
-import { QueryViewer } from "@/components/query-viewer";
 import { Search } from "@/components/search";
 import { Header } from "@/components/header";
 
@@ -22,7 +20,6 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [chartConfig, setChartConfig] = useState<Config | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -115,8 +112,6 @@ export default function Page() {
     setExplanations([]);
     setData([]);
     setVisualizationType([]);
-    setChartConfig(null);
-    
     // Abort any active request
     if (abortController) {
       abortController.abort();
@@ -167,12 +162,6 @@ export default function Page() {
                       layout
                       className="sm:h-full min-h-[400px] flex flex-col"
                     >
-                      {activeQuery.length > 0 && (
-                        <QueryViewer
-                          activeQuery={activeQuery}
-                          inputValue={inputValue}
-                        />
-                      )}
                       {loading ? (
                         <div className="flex-grow flex flex-col items-center justify-center">
                           <div className="flex items-center justify-center">
