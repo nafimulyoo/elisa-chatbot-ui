@@ -16,10 +16,8 @@ export default function Page() {
   const [explanations, setExplanations]: any = useState([]);
   const [data, setData]: any = useState([]);
   const [visualizationType, setVisualizationType]: any = useState([]);
-  const [activeQuery, setActiveQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -42,8 +40,6 @@ export default function Page() {
     }
     setLoading(true);
     setLoadingStep("Analyzing request...");
-    setLoadingProgress(0);
-    setActiveQuery("");
 
     // Abort previous request if exists
     if (abortController) {
@@ -66,7 +62,6 @@ export default function Page() {
       const responseData = await response.json();
       
       setLoadingStep("Processing results...");
-      setLoadingProgress(100);
 
       // Process the results
       const result: any = responseData
@@ -107,7 +102,6 @@ export default function Page() {
   };
 
   const clearExistingData = () => {
-    setActiveQuery("");
     setColumns([]);
     setExplanations([]);
     setData([]);

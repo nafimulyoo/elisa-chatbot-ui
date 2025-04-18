@@ -9,7 +9,7 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import {
   BarChart,
@@ -23,7 +23,6 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const ELISA_URL = 'https://elisa.itb.ac.id';
 
 interface ElisaData {
   chart_data: {
@@ -69,7 +68,6 @@ const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 export default function Home() {
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
   // Filter states
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
@@ -156,7 +154,6 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError(null);
       try {
         const fakultas_data = fakultas === "all" ? "" : fakultas;
         const gedung_data = gedung === "all" ? "" : gedung;
@@ -173,7 +170,6 @@ export default function Home() {
         const data: ElisaData = await response.json();
         setData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);

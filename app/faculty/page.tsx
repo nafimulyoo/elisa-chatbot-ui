@@ -17,14 +17,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const ELISA_URL = 'https://elisa.itb.ac.id';
 
 interface FacultyComparisonData {
   value: {

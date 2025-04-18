@@ -1,30 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-  Table,
-} from "@/components/ui/table";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeatMapGrid } from "react-grid-heatmap";
 
-const ELISA_URL = 'https://elisa.itb.ac.id';
 
 interface HeatmapData {
   dates: {
@@ -48,8 +29,6 @@ const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 export default function Home() {
   const [data, setData] = useState<HeatmapData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
   // Filter states
   const [dateRange, setDateRange] = useState<{start: string, end: string}>(() => {
     // Default to current week
@@ -173,7 +152,6 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError(null);
       try {
         const fakultas_data = fakultas === "all" ? "" : fakultas;
         const gedung_data = gedung === "all" ? "" : gedung;
@@ -190,7 +168,6 @@ export default function Home() {
         const data: HeatmapData = await response.json();
         setData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);

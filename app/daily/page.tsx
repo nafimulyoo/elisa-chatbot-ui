@@ -9,7 +9,7 @@ import {
   TableCell,
   Table,
 } from "@/components/ui/table";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import {
   BarChart,
@@ -23,7 +23,6 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const ELISA_URL = 'https://elisa.itb.ac.id';
 
 interface ElisaData {
   chart_data: {
