@@ -20,7 +20,7 @@ RUN chown -R node:node /usr/app
 # Copy all files
 COPY ./ ./
 
-ENV NEXT_PUBLIC_API_URL=https://deployimg-51750986811.asia-southeast2.run.app:8080
+ENV NEXT_PUBLIC_API_URL=https://elisa-smart-analysis-51750986811.asia-southeast2.run.app
 
 # Build app
 RUN npm run build
