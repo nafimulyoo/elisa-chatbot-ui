@@ -78,6 +78,10 @@ export const SuggestedQueries = ({
         mobile: "What is ELISA",
       },
       {
+        desktop: "When is the peak usage of Labtek VI in the last 3 months",
+        mobile: "Labtek VI peak usage",
+      },
+      {
         desktop: "What is the usage trend of FSRD in the last 3 months",
         mobile: "What is the usage trend of FSRD in the last 3 months",
       },
@@ -85,6 +89,22 @@ export const SuggestedQueries = ({
         desktop: "Total ITB usage over the past month",
         mobile: "Total ITB usage over the past month",
       },
+      {
+        desktop: "Top 3 faculty usage in the last 3 months",
+        mobile: "Top 3 faculty usage in the last 3 months",
+      },
+      {
+        desktop: "Compare SF and FMIPA usage trends",
+        mobile: "SF vs FMIPA trends",
+      },
+      {
+        desktop: "Plot last hour usage of FSRD",
+        mobile: "FSRD last hour usage",
+      },
+      {
+        desktop: "Lowest ITB usage this week",
+        mobile: "Lowest ITB usage this week",
+      }
     ];
   }
 
