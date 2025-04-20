@@ -136,6 +136,9 @@ export default function Page() {
               setInputValue={setInputValue}
               submitted={submitted}
             />
+            <p className="text-md text-warning mt-2 mb-3">
+              Currently, I can only assist with basic data analysis as shown in the example. Forecasting, prediction, clustering, and other advanced analysis are not supported yet. Please check back later for updates.
+            </p>
             <div
               id="main-container"
               className="flex-grow flex flex-col sm:min-h-[420px]"
