@@ -50,14 +50,13 @@ export default function Page() {
     setAbortController(controller);
 
     try {
-      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}`, {
-        credentials: 'include',
-        signal: controller.signal
-      });
+      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      
 
       const responseData = await response.json();
       
