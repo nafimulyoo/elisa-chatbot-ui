@@ -151,6 +151,9 @@ export default function Home() {
   }, [gedung, fakultas]);
 
   useEffect(() => {
+    setData(null);
+    setAnalysis(""); 
+    
     // current date in YYYY-MM-DD format without hour
     setLoading(true);
     const current_date = new Date().toISOString().split("T")[0];

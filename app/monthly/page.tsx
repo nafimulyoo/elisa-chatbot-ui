@@ -153,6 +153,8 @@ export default function Home() {
 
   // Fetch data when filters change
   useEffect(() => {
+    setData(null);
+    setAnalysis(""); 
     const fetchData = async () => {
       setLoading(true);
       try {

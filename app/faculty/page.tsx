@@ -80,6 +80,9 @@ export default function FacultyComparison() {
   // fetch analysis using useEffect
   // Fetch data when month changes
   useEffect(() => {
+    setData(null);
+    setAnalysis(""); 
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
