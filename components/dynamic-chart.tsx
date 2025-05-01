@@ -211,7 +211,12 @@ export const DynamicChart = ({
                 </Bar>
               )
             )}
+            
           </BarChart>
+
+
+
+
         );
 
       // case "scatter_plot":

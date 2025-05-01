@@ -30,14 +30,14 @@ export default function Home() {
   const [data, setData] = useState<HeatmapData | null>(null);
   const [loading, setLoading] = useState(false);
   // Filter states
-  const [dateRange, setDateRange] = useState<{start: string, end: string}>(() => {
+  const [dateRange, setDateRange] = useState<{ start: string, end: string }>(() => {
     // Default to current week
     const today = new Date();
     const end = new Date(today);
     // start date is today - 6 days
     const start = new Date(today);
-    start.setDate(today.getDate() - 6); 
-    
+    start.setDate(today.getDate() - 6);
+
     return {
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0]
@@ -46,7 +46,7 @@ export default function Home() {
   const [fakultas, setFakultas] = useState("all");
   const [gedung, setGedung] = useState("all");
   const [lantai, setLantai] = useState("all");
-  
+
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
   const [gedungOptions, setGedungOptions] = useState<Option[]>([]);
@@ -60,21 +60,21 @@ export default function Home() {
   // Prepare heatmap data
   const prepareHeatmapData = () => {
     if (!data) return { xLabels: [], yLabels: [], data: [] };
-    
+
     // Initialize empty grid (7 days x 24 hours)
     const grid = Array(7).fill(0).map(() => Array(24).fill(0));
-    
+
     // Fill the grid with values
     data.heatmap.forEach(item => {
       // Adjust day index (API returns 1=Monday, we want 0=Sunday)
       const dayIndex = (item.day + 6) % 7; // Convert to 0-6 (Sunday-Saturday)
       grid[dayIndex][item.hour] = item.value;
     });
-    
+
     // Prepare labels
     const xLabels = Array(24).fill(0).map((_, i) => `${i}:00`);
     const yLabels = dayNames;
-    
+
     return { xLabels, yLabels, data: grid };
   };
 
@@ -158,13 +158,13 @@ export default function Home() {
         const lantai_data = lantai === "all" ? "" : lantai;
 
         const url = `${ANALYSIS_URL}/api/heatmap?start=${dateRange.start}&end=${dateRange.end}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
-        
+
         console.log(url);
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.status}`);
         }
-        
+
         const data: HeatmapData = await response.json();
         setData(data);
       } catch (err) {
@@ -198,9 +198,9 @@ export default function Home() {
     }
 
     fetchAll();
-    
+
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 15*60*1000);
+    intervalId = setInterval(fetchAll, 15 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -214,7 +214,7 @@ export default function Home() {
     start.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
     const end = new Date(start);
     end.setDate(start.getDate() + 6); // End of week (Saturday)
-    
+
     setDateRange({
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0]
@@ -234,12 +234,12 @@ export default function Home() {
             className="p-2 border rounded-md"
           />
         </div>
-        
+
         {/* Fakultas Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Fakultas</label>
-          <Select 
-            value={fakultas} 
+          <Select
+            value={fakultas}
             onValueChange={(value) => {
               setFakultas(value);
               setGedung("all");
@@ -259,12 +259,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Gedung Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Gedung</label>
-          <Select 
-            value={gedung} 
+          <Select
+            value={gedung}
             onValueChange={(value) => {
               setGedung(value);
               setLantai("all");
@@ -284,12 +284,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Lantai Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Lantai</label>
-          <Select 
-            value={lantai} 
+          <Select
+            value={lantai}
             onValueChange={setLantai}
             disabled={gedung === "all" || fakultas === "all"}
           >
@@ -306,10 +306,10 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Reset Button */}
         <div className="flex items-end">
-          <button 
+          <button
             onClick={() => {
               setFakultas("all");
               setGedung("all");
@@ -350,92 +350,147 @@ export default function Home() {
             layout
             className="sm:h-full min-h-[400px] flex flex-col"
           > {
-              data && (
-        <>
-          {/* Heatmap Section */}
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">
-              Energy Usage Heatmap ({new Date(data.dates.start).toLocaleDateString()} - {new Date(data.dates.end).toLocaleDateString()})
-            </h2>
-            <div className="h-[300px]">
-              <HeatMapGrid
-                data={heatmapData}
-                xLabels={xLabels}
-                yLabels={yLabels}
-                cellHeight="2rem"
-                cellStyle={(_x, _y, ratio) => ({
-                  background: `rgb(${255 * (ratio)}, ${255 * (1 - ratio)}, 0)`,
-                  fontSize: "0.8rem",
-                  color: ratio > 0.5 ? "white" : "black"
-                })}
-                cellRender={(x, y, value) => (
-                  <div title={`${yLabels[y]} ${xLabels[x]}: ${value?.toFixed(2) || 0} kWh`}>
-                    {value?.toFixed(1) || 0}
+              data ? (
+                <>
+                  {/* Heatmap Section */}
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">
+                      Energy Usage Heatmap ({new Date(data.dates.start).toLocaleDateString()} - {new Date(data.dates.end).toLocaleDateString()})
+                    </h2>
+                    <div className="h-[300px]">
+                      <HeatMapGrid
+                        data={heatmapData}
+                        xLabels={xLabels}
+                        yLabels={yLabels}
+                        cellHeight="2rem"
+                        cellStyle={(_x, _y, ratio) => ({
+                          background: `rgb(${255 * (ratio)}, ${255 * (1 - ratio)}, 0)`,
+                          fontSize: "0.8rem",
+                          color: ratio > 0.5 ? "white" : "black"
+                        })}
+                        cellRender={(x, y, value) => (
+                          <div title={`${yLabels[y]} ${xLabels[x]}: ${value?.toFixed(2) || 0} kWh`}>
+                            {value?.toFixed(1) || 0}
+                          </div>
+                        )}
+                        xLabelsStyle={(index) => ({
+                          fontSize: "0.8rem",
+                          textTransform: "uppercase",
+                          color: "#777"
+                        })}
+                        yLabelsStyle={() => ({
+                          fontSize: "0.8rem",
+                          textTransform: "uppercase",
+                          color: "#777"
+                        })}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-2 text-sm text-gray-600">
+                      <span>Low: {minValue.toFixed(2)} kWh</span>
+                      <span>High: {maxValue.toFixed(2)} kWh</span>
+                    </div>
                   </div>
-                )}
-                xLabelsStyle={(index) => ({
-                  fontSize: "0.8rem",
-                  textTransform: "uppercase",
-                  color: "#777"
-                })}
-                yLabelsStyle={() => ({
-                  fontSize: "0.8rem",
-                  textTransform: "uppercase",
-                  color: "#777"
-                })}
-              />
-            </div>
-            <div className="flex justify-between mt-2 text-sm text-gray-600">
-              <span>Low: {minValue.toFixed(2)} kWh</span>
-              <span>High: {maxValue.toFixed(2)} kWh</span>
-            </div>
-          </div>
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-              <div className="h-40 overflow-y-auto">
-              {
-                            !analysis ? (   
-                              <motion.div
-                                key="analysis"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center justify-center h-full"
-                              >
-                                <div className="flex-grow flex flex-col items-center justify-center">
-                                  <div className="flex items-center justify-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                                  </div>
-                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                                    Loading analysis...
-                                  </div>
-                                </div>
-                              </motion.div>
-                            ) : (
-                              <div>
-                                {
-                                  analysis && (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="h-full"
-                                    >
-                                      <p className="text-gray-700">
-                                        {analysis}
-                                      </p>
-                                    </motion.div>
-                                  )
-                                }
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                    <div className="h-40 overflow-y-auto">
+                      {
+                        !analysis ? (
+                          <motion.div
+                            key="analysis"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-center justify-center h-full"
+                          >
+                            <div className="flex-grow flex flex-col items-center justify-center">
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                               </div>
-                            )
-                          }
-              </div>
-            </div>
+                              <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                Loading analysis...
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div>
+                            {
+                              analysis && (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="h-full"
+                                >
+                                  <p className="text-gray-700">
+                                    {analysis}
+                                  </p>
+                                </motion.div>
+                              )
+                            }
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
 
-        </>
-              )}
+                </>
+              ) : (
+                <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                  {/* Chart Section - Clustered Column Chart */}
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">Data not Available</h2>
+                    <div className="h-80">
+                      Failed to fetch data from ELISA API. Please check analysis for more information.
+                    </div>
+                  </div>
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                    <div className="h-80">
+                      {
+                        !analysis ? (
+                          <motion.div
+                            key="analysis"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-center justify-center h-full"
+                          >
+                            <div className="flex-grow flex flex-col items-center justify-center">
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                              </div>
+                              <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                Loading analysis...
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div>
+                            {
+                              analysis && (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="h-full"
+                                >
+                                  <p className="text-gray-700">
+                                    {analysis}
+                                  </p>
+                                </motion.div>
+                              )
+                            }
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </div>
+              )
+
+            }
           </motion.div>
         </>)}
     </div>

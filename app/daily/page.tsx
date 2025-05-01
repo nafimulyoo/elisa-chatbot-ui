@@ -347,7 +347,7 @@ export default function Home() {
             layout
             className="sm:h-full min-h-[400px] flex flex-col"
           > {
-              data && (
+              data ? (
                 <>
                   {/* Summary Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -360,7 +360,7 @@ export default function Home() {
                           <p><span className="font-medium">Cost: </span>Rp{data.today_data.total_cost.toFixed(2)}</p>
                         </div>
                         <div>
-                        <h3 className="font-semibold">Average Hourly Usage</h3>
+                          <h3 className="font-semibold">Average Hourly Usage</h3>
                           <p><span className="font-medium">Energy: </span>{data.today_data.avg_daya.toFixed(2)} kWh/hour</p>
                           <p><span className="font-medium">Cost: </span>Rp{data.today_data.avg_cost.toFixed(2)} /hour</p>
                         </div>
@@ -382,103 +382,156 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                    <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                      {/* Chart Section - Clustered Column Chart */}
-                      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
-                        <div className="h-80">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={chartData}
-                              margin={{
-                                top: 20,
-                                right: 30,
-                                left: 20,
-                                bottom: 5,
-                              }}
+                  <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    {/* Chart Section - Clustered Column Chart */}
+                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={chartData}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="R" fill="#8884d8" name="Phase R" />
+                            <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
+                            <Bar dataKey="T" fill="#ffc658" name="Phase T" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                      <div className="h-80">
+                        {
+                          !analysis ? (
+                            <motion.div
+                              key="analysis"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex items-center justify-center h-full"
                             >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="time" />
-                              <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Legend />
-                              <Bar dataKey="R" fill="#8884d8" name="Phase R" />
-                              <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
-                              <Bar dataKey="T" fill="#ffc658" name="Phase T" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-                        <div className="h-80">
-                          {
-                            !analysis ? (
-                              <motion.div
-                                key="analysis"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center justify-center h-full"
-                              >
-                                <div className="flex-grow flex flex-col items-center justify-center">
-                                  <div className="flex items-center justify-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                                  </div>
-                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                                    Loading analysis...
-                                  </div>
+                              <div className="flex-grow flex flex-col items-center justify-center">
+                                <div className="flex items-center justify-center">
+                                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                                 </div>
-                              </motion.div>
-                            ) : (
-                              <div>
-                                {
-                                  analysis && (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="h-full"
-                                    >
-                                      <p className="text-gray-700">
-                                        {analysis}
-                                      </p>
-                                    </motion.div>
-                                  )
-                                }
+                                <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                  Loading analysis...
+                                </div>
                               </div>
-                            )
-                          }
-                        </div>
+                            </motion.div>
+                          ) : (
+                            <div>
+                              {
+                                analysis && (
+                                  <motion.div
+                                    key="analysis"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="h-full"
+                                  >
+                                    <p className="text-gray-700">
+                                      {analysis}
+                                    </p>
+                                  </motion.div>
+                                )
+                              }
+                            </div>
+                          )
+                        }
                       </div>
                     </div>
-                    {/* Table Section */}
-                    <div className="mb-8">
-                      <h2 className="text-xl font-semibold mb-4">Hourly Data</h2>
-                      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <Table>
-                          <TableHeader className="bg-gray-100">
-                            <TableRow>
-                              <TableHead>Hour (UTC+7)</TableHead>
-                              <TableHead>Energy</TableHead>
-                              <TableHead>Cost</TableHead>
+                  </div>
+                  {/* Table Section */}
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold mb-4">Hourly Data</h2>
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-gray-100">
+                          <TableRow>
+                            <TableHead>Hour (UTC+7)</TableHead>
+                            <TableHead>Energy</TableHead>
+                            <TableHead>Cost</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.hourly_data.slice(0, 10).map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item.hour}</TableCell>
+                              <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
+                              <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {data.hourly_data.slice(0, 10).map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{item.hour}</TableCell>
-                                <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
-                                <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
+                  </div>
                 </>
 
+              ) : (
+                <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                  {/* Chart Section - Clustered Column Chart */}
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">Data not Available</h2>
+                    <div className="h-80">
+                      Failed to fetch data from ELISA API. Please check analysis for more information.
+                    </div>
+                  </div>
+                  <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                    <div className="h-80">
+                      {
+                        !analysis ? (
+                          <motion.div
+                            key="analysis"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-center justify-center h-full"
+                          >
+                            <div className="flex-grow flex flex-col items-center justify-center">
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                              </div>
+                              <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                Loading analysis...
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div>
+                            {
+                              analysis && (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="h-full"
+                                >
+                                  <p className="text-gray-700">
+                                    {analysis}
+                                  </p>
+                                </motion.div>
+                              )
+                            }
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </div>
               )
             }
           </motion.div>

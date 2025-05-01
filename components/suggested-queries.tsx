@@ -9,103 +9,41 @@ export const SuggestedQueries = ({
   var suggestionQueries: any = [];
   if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
     suggestionQueries = [
-      {
-        desktop: "What is ELISA",
-        mobile: "What is ELISA",
-      },
-      {
-        desktop:  "What is the usage trend of FSRD in the last 3 months",
-        mobile:  "What is the usage trend of FSRD in the last 3 months",
-      },
-      {
-        desktop: "Total ITB usage over the past month",
-        mobile: "Total ITB usage over the past month",
-      },
-      {
-        desktop: "Top 3 faculty usage in the last 3 months",
-        mobile: "Top 3 faculty usage in the last 3 months",
-      },
-      {
-        desktop: "Forecast CC Barat usage during holidays",
-        mobile: "CC Barat holiday forecast",
-      },
-      {
-        desktop: "Predict Labtek VI peak hours next week",
-        mobile: "Labtek VI peak forecast",
-      },
-      {
-        desktop: "Average Engineering Physics Building usage during summer",
-        mobile: "Engineering Physics summer usage",
-      },
-      {
-        desktop: "Compare STEI usage: weekdays vs weekends",
-        mobile: "STEI weekdays vs weekends",
-      },
-      {
-        desktop: "Forecast ITB usage for next academic year",
-        mobile: "ITB yearly forecast",
-      },
-      {
-        desktop: "Labtek III usage trends last 3 semesters",
-        mobile: "Labtek III trends",
-      },
-      {
-        desktop: "Predict FTI usage during next major event",
-        mobile: "FTI event forecast",
-      },
-      {
-        desktop: "Compare CC Timur and Barat peak usage",
-        mobile: "CC Timur vs Barat peak",
-      },
-      {
-        desktop: "Total ITB usage over the past decade",
-        mobile: "Decade total usage",
-      },
-      {
-        desktop: "Forecast Labtek VII usage during winter break",
-        mobile: "Labtek VII winter forecast",
-      },
-      {
-        desktop: "Compare SF and FMIPA usage trends",
-        mobile: "SF vs FMIPA trends",
-      }
-    ];
+      ["What is ELISA", "Basic Knowledge"],
+      ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
+      ["What is the weather like today", "Unrelevant"],
+      ["What is your favorite color", "Unrelevant"],
+      ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
+      ["What is the usage trend of Fakultas Kedokteran", "Data Not Available"],
+      ["What is the usage trend of ITB since last year", "Basic Analysis"],
+      ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
+      ["Gedung Labtek VI highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
+      ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
+      ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
+      ["Forecast CC Barat usage during holidays", "Advanced Analysis"],
+      ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
+      ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
+      ["Predict FTI usage during next major event", "Advanced Analysis"],
+    ]
   }
   if (process.env.NEXT_PUBLIC_ENVIRONMENT === "production") {
     suggestionQueries = [
-      {
-        desktop: "What is ELISA",
-        mobile: "What is ELISA",
-      },
-      {
-        desktop: "When is the peak usage of Labtek VI in the last 3 months",
-        mobile: "Labtek VI peak usage",
-      },
-      {
-        desktop: "What is the usage trend of FSRD in the last 3 months",
-        mobile: "What is the usage trend of FSRD in the last 3 months",
-      },
-      {
-        desktop: "Total ITB usage over the past month",
-        mobile: "Total ITB usage over the past month",
-      },
-      {
-        desktop: "Top 3 faculty usage in the last 3 months",
-        mobile: "Top 3 faculty usage in the last 3 months",
-      },
-      {
-        desktop: "Compare SF and FMIPA usage trends",
-        mobile: "SF vs FMIPA trends",
-      },
-      {
-        desktop: "Plot last hour usage of FSRD",
-        mobile: "FSRD last hour usage",
-      },
-      {
-        desktop: "Lowest ITB usage this week",
-        mobile: "Lowest ITB usage this week",
-      }
-    ];
+      ["What is ELISA", "Basic Knowledge"],
+      ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
+      ["What is the weather like today", "Unrelevant"],
+      ["What is your favorite color", "Unrelevant"],
+      ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
+      ["What is the usage trend of Fakultas Kedokteran", "Data Not Available"],
+      ["What is the usage trend of ITB since last year", "Basic Analysis"],
+      ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
+      ["Gedung Labtek X highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
+      ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
+      ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
+      ["Forecast CC Barat usage during holidays", "Advanced Analysis"],
+      ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
+      ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
+      ["Predict FTI usage during next major event", "Advanced Analysis"],
+    ]
   }
 
   return (
@@ -118,21 +56,46 @@ export const SuggestedQueries = ({
       className="h-full overflow-y-auto"
     >
       <h2 className="text-lg sm:text-lg font-semibold text-foreground mb-4 text-gray-700">
-        Try these queries:
+        Test cases:
       </h2>
-      <div className="flex flex-wrap gap-2">
-        {suggestionQueries.map((suggestion:any , index: any) => (
-          <Button
-            key={index}
-            className={index > 5 ? "hidden sm:inline-block" : ""}
-            type="button"
-            variant="outline"
-            onClick={() => handleSuggestionClick(suggestion.desktop)}
-          >
-            <span className="sm:hidden">{suggestion.mobile}</span>
-            <span className="hidden sm:inline">{suggestion.desktop}</span>
-          </Button>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                No.
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Case
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Test Query
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {suggestionQueries.map((suggestion: any, index: any) => (
+              <tr key={index}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {index + 1}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {suggestion[1]}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleSuggestionClick(suggestion[0])}
+                    className="text-left"
+                  >
+                    {suggestion[0]}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </motion.div>
   );

@@ -68,23 +68,24 @@ const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 export default function Home() {
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Filter states
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
   const [month, setMonth] = useState(currentMonth);
+  // const [month, setMonth] = useState("2019-01");
   const [fakultas, setFakultas] = useState("all");
   const [gedung, setGedung] = useState("all");
   const [lantai, setLantai] = useState("all");
-  
+
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
   const [gedungOptions, setGedungOptions] = useState<Option[]>([]);
   const [lantaiOptions, setLantaiOptions] = useState<Option[]>([]);
 
-    // Analysis
+  // Analysis
   const [analysis, setAnalysis] = useState("");
 
-  
+
 
   // Fetch initial fakultas options
   useEffect(() => {
@@ -160,13 +161,13 @@ export default function Home() {
         const lantai_data = lantai === "all" ? "" : lantai;
 
         const url = `${ANALYSIS_URL}/api/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
-        
+
         console.log(url);
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.status}`);
         }
-        
+
         const data: ElisaData = await response.json();
         setData(data);
       } catch (err) {
@@ -191,16 +192,16 @@ export default function Home() {
         console.error("Error fetching analysis:", err);
       }
     };
-    
+
     const fetchAll = async () => {
       fetchData();
       fetchAnalysis();
     }
 
     fetchAll();
-    
+
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 60*60*1000);
+    intervalId = setInterval(fetchAll, 60 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -218,7 +219,7 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      
+
       {/* Filter Section */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
         <div className="flex flex-col">
@@ -231,12 +232,12 @@ export default function Home() {
             max={currentMonth} // Prevent future months
           />
         </div>
-        
+
         {/* Fakultas Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Fakultas</label>
-          <Select 
-            value={fakultas} 
+          <Select
+            value={fakultas}
             onValueChange={(value) => {
               setFakultas(value);
               setGedung("all");
@@ -256,12 +257,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Gedung Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Gedung</label>
-          <Select 
-            value={gedung} 
+          <Select
+            value={gedung}
             onValueChange={(value) => {
               setGedung(value);
               setLantai("all");
@@ -281,12 +282,12 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Lantai Select */}
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Lantai</label>
-          <Select 
-            value={lantai} 
+          <Select
+            value={lantai}
             onValueChange={setLantai}
             disabled={gedung === "all" || fakultas === "all"}
           >
@@ -303,10 +304,10 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Reset Button */}
         <div className="flex items-end">
-          <button 
+          <button
             onClick={() => {
               setFakultas("all");
               setGedung("all");
@@ -347,29 +348,29 @@ export default function Home() {
             layout
             className="sm:h-full min-h-[400px] flex flex-col"
           > {
-              data && (
+              data ? (
                 <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Current Month Summary</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Current Month Summary</h2>
+
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <h3 className="font-semibold">Total Usage</h3>
                           <p><span className="font-medium">Energy: </span>{data.month_data.total_daya.toFixed(2)} kWh</p>
                           <p><span className="font-medium">Cost: </span>Rp{data.month_data.total_cost.toFixed(2)}</p>
                         </div>
                         <div>
-                        <h3 className="font-semibold">Average Daily Usage</h3>
+                          <h3 className="font-semibold">Average Daily Usage</h3>
                           <p><span className="font-medium">Energy: </span>{data.month_data.avg_daya.toFixed(2)} kWh/day</p>
                           <p><span className="font-medium">Cost: </span>Rp{data.month_data.avg_cost.toFixed(2)} /day</p>
                         </div>
-                </div>
-            </div>
+                      </div>
+                    </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
-<div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <h3 className="font-semibold">Total Usage</h3>
                           <p><span className="font-medium">Energy: </span>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
@@ -381,111 +382,165 @@ export default function Home() {
                           <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.day_cost?.toFixed(2) || 'N/A'} /day</p>
                         </div>
                       </div>
-            </div>
-          </div>
-        <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          {/* Chart Section - Clustered Column Chart */}
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="R" fill="#8884d8" name="Phase R" />
-                  <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
-                  <Bar dataKey="T" fill="#ffc658" name="Phase T" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-              <div className="h-80">
-              {
-                            !analysis ? (
+                    </div>
+                  </div>
+                  <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    {/* Chart Section - Clustered Column Chart */}
+                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={chartData}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" />
+                            <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="R" fill="#8884d8" name="Phase R" />
+                            <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
+                            <Bar dataKey="T" fill="#ffc658" name="Phase T" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                      <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                      <div className="h-80">
+                        {
+                          !analysis ? (
+                            <motion.div
+                              key="analysis"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex items-center justify-center h-full"
+                            >
+                              <div className="flex-grow flex flex-col items-center justify-center">
+                                <div className="flex items-center justify-center">
+                                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                </div>
+                                <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                                  Loading analysis...
+                                </div>
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <div>
+                              {
+                                analysis && (
+                                  <motion.div
+                                    key="analysis"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="h-full"
+                                  >
+                                    <p className="text-gray-700">
+                                      {analysis}
+                                    </p>
+                                  </motion.div>
+                                )
+                              }
+                            </div>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  {/* Table Section */}
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold mb-4">Daily Data</h2>
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-gray-100">
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Energy</TableHead>
+                            <TableHead>Cost</TableHead>
+                            <TableHead>Phase 1</TableHead>
+                            <TableHead>Phase 2</TableHead>
+                            <TableHead>Phase 3</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.daily_data.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{formatDate(item.timestamp)}</TableCell>
+                              <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
+                              <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
+                              <TableCell>{item["phase 1"].toFixed(2)} kWh</TableCell>
+                              <TableCell>{item["phase 2"].toFixed(2)} kWh</TableCell>
+                              <TableCell>{item["phase 3"].toFixed(2)} kWh</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                {/* Chart Section - Clustered Column Chart */}
+                <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Data not Available</h2>
+                  <div className="h-80">
+                    Failed to fetch data from ELISA API. Please check analysis for more information.
+                  </div>
+                </div>
+                <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
+                  <div className="h-80">
+                    {
+                      !analysis ? (
+                        <motion.div
+                          key="analysis"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center justify-center h-full"
+                        >
+                          <div className="flex-grow flex flex-col items-center justify-center">
+                            <div className="flex items-center justify-center">
+                              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                            </div>
+                            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                              Loading analysis...
+                            </div>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <div>
+                          {
+                            analysis && (
                               <motion.div
                                 key="analysis"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="flex items-center justify-center h-full"
+                                className="h-full"
                               >
-                                <div className="flex-grow flex flex-col items-center justify-center">
-                                  <div className="flex items-center justify-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                                  </div>
-                                  <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                                    Loading analysis...
-                                  </div>
-                                </div>
+                                <p className="text-gray-700">
+                                  {analysis}
+                                </p>
                               </motion.div>
-                            ) : (
-                              <div>
-                                {
-                                  analysis && (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="h-full"
-                                    >
-                                      <p className="text-gray-700">
-                                        {analysis}
-                                      </p>
-                                    </motion.div>
-                                  )
-                                }
-                              </div>
                             )
                           }
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {/* Table Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Daily Data</h2>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <Table>
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Energy</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Phase 1</TableHead>
-                    <TableHead>Phase 2</TableHead>
-                    <TableHead>Phase 3</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.daily_data.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{formatDate(item.timestamp)}</TableCell>
-                      <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
-                      <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
-                      <TableCell>{item["phase 1"].toFixed(2)} kWh</TableCell>
-                      <TableCell>{item["phase 2"].toFixed(2)} kWh</TableCell>
-                      <TableCell>{item["phase 3"].toFixed(2)} kWh</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-          </>
-          )}
+              )
+            }
           </motion.div>
         </>
       )}
