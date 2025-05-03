@@ -3,10 +3,11 @@
 import { Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export const Search = ({
+// Wrap the part that uses useSearchParams in a separate component
+const SearchParamsWrapper = ({
   handleSubmit,
   inputValue,
   setInputValue,
@@ -76,5 +77,14 @@ export const Search = ({
         </div>
       </div>
     </form>
+  );
+};
+
+// Main component that wraps with Suspense
+export const Search = (props: any) => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchParamsWrapper {...props} />
+    </Suspense>
   );
 };
