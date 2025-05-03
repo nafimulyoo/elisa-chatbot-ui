@@ -10,7 +10,7 @@ import {
   Table,
 } from "@/components/ui/table";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Calendar, FileChartColumnIncreasing, Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -23,6 +23,10 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { formatNumber } from "@/lib/utils";
 
 interface ElisaData {
   chart_data: {
@@ -63,15 +67,24 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+const getLocalYearMonth = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  return `${year}-${month}`;
+};
+
+
 const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function Home() {
+  const { theme, setTheme } = useTheme();
+  const [comparison, setComparison] = useState<number[]>([]);
   const [data, setData] = useState<ElisaData | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Filter states
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-  const [month, setMonth] = useState(currentMonth);
+  const [month, setMonth] = useState(getLocalYearMonth());
   // const [month, setMonth] = useState("2019-01");
   const [fakultas, setFakultas] = useState("all");
   const [gedung, setGedung] = useState("all");
@@ -93,7 +106,8 @@ export default function Home() {
       try {
         const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error('Failed to fetch fakultas');
-        const data = await response.json();
+        var data = await response.json();
+        data.fakultas = data.fakultas.filter((fakultas: Option) => fakultas.value !== "-");
         setFakultasOptions(data.fakultas || []);
       } catch (err) {
         console.error("Error fetching fakultas:", err);
@@ -104,17 +118,16 @@ export default function Home() {
 
   // Fetch gedung options when fakultas changes
   useEffect(() => {
-    if (fakultas === "all") {
-      setGedung("all");
-      setGedungOptions([]);
-      setLantai("all");
-      setLantaiOptions([]);
-      return;
-    }
-
     const fetchGedung = async () => {
       try {
-        const response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+        var response;
+        if (fakultas === "all") {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=-`);
+        }
+        else {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+        }
+
         if (!response.ok) throw new Error('Failed to fetch gedung');
         const data = await response.json();
         setGedungOptions(data.gedung || []);
@@ -129,7 +142,7 @@ export default function Home() {
 
   // Fetch lantai options when gedung changes
   useEffect(() => {
-    if (gedung === "all" || fakultas === "all") {
+    if (gedung === "all") {
       setLantai("all");
       setLantaiOptions([]);
       return;
@@ -141,7 +154,8 @@ export default function Home() {
           `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
         );
         if (!response.ok) throw new Error('Failed to fetch lantai');
-        const data = await response.json();
+        var data = await response.json();
+        data.lantai = data.lantai.filter((lantai: Option) => lantai.value !== "Total");;
         setLantaiOptions(data.lantai || []);
         setLantai("all");
       } catch (err) {
@@ -154,7 +168,7 @@ export default function Home() {
   // Fetch data when filters change
   useEffect(() => {
     setData(null);
-    setAnalysis(""); 
+    setAnalysis("");
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -172,6 +186,12 @@ export default function Home() {
 
         const data: ElisaData = await response.json();
         setData(data);
+        setComparison(
+          [
+            data.month_data.avg_daya - data.prev_month_data.day_daya,
+            data.month_data.avg_cost - data.prev_month_data.day_cost,
+          ]
+        )
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -220,332 +240,404 @@ export default function Home() {
   })) || [];
 
   return (
-    <div className="p-6">
+    <motion.div className="grid grid-cols-1 md:grid-cols-5 gap-4" initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}>
+      <Card className="col-span-4 md:col-span-4 mb-4">
+        <CardHeader className="mb-4 py-3">
+          <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            <Calendar className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Monthly Usage
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
 
-      {/* Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Month</label>
-          <input
-            type="month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="p-2 border rounded-md"
-            max={currentMonth} // Prevent future months
-          />
-        </div>
+          <div className="">
 
-        {/* Fakultas Select */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Fakultas</label>
-          <Select
-            value={fakultas}
-            onValueChange={(value) => {
-              setFakultas(value);
-              setGedung("all");
-              setLantai("all");
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Fakultas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Fakultas</SelectItem>
-              {fakultasOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            {/* Filter Section */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Month</label>
+                <input
+                  type="month"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="p-2 border rounded-md text-sm dark:bg-slate-900/10 
+                dark:border-slate-700/50  text-slate-900 dark:text-slate-100 foc
+                us:outline-none focus:ring focus:ring-slate-500 
+                focus:ring-opacity-50 disabled:opacity-50 hover:cursor-pointer"
+                  max={getLocalYearMonth()} // Prevent future dates
+                />
+              </div>
 
-        {/* Gedung Select */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Gedung</label>
-          <Select
-            value={gedung}
-            onValueChange={(value) => {
-              setGedung(value);
-              setLantai("all");
-            }}
-            disabled={fakultas === "all"}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={fakultas !== "all" ? "Select Gedung" : "Select Fakultas first"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Gedung</SelectItem>
-              {gedungOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              {/* Fakultas Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Faculty</label>
+                <Select
+                  value={fakultas}
+                  onValueChange={(value) => {
+                    setFakultas(value);
+                    setGedung("all"); // Reset gedung when fakultas changes
+                    setLantai("all"); // Reset lantai when fakultas changes
+                  }}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue placeholder="Select Fakultas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Faculty</SelectItem>
+                    {fakultasOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Lantai Select */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Lantai</label>
-          <Select
-            value={lantai}
-            onValueChange={setLantai}
-            disabled={gedung === "all" || fakultas === "all"}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={gedung !== "all" ? "Select Lantai" : "Select Gedung first"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Lantai</SelectItem>
-              {lantaiOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              {/* Gedung Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Building</label>
+                <Select
+                  value={gedung}
+                  onValueChange={(value) => {
+                    setGedung(value);
+                    setLantai("all"); // Reset lantai when gedung changes
+                  }}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue
+                      placeholder={
+                        fakultas !== "all" ? "Select Gedung" : "Select Fakultas first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Building</SelectItem>
+                    {gedungOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Reset Button */}
-        <div className="flex items-end">
-          <button
-            onClick={() => {
-              setFakultas("all");
-              setGedung("all");
-              setLantai("all");
-            }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
-          >
-            Reset Filters
-          </button>
-        </div>
-      </div>
+              {/* Lantai Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Floor</label>
+                <Select
+                  value={lantai}
+                  onValueChange={setLantai}
+                  disabled={gedung === "all"}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue
+                      placeholder={
+                        gedung !== "all" ? "Select Lantai" : "Select Gedung first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Floor</SelectItem>
+                    {lantaiOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {loading ? (
-        <motion.div
-          key="results"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          layout
-          className="sm:h-full min-h-[400px] flex flex-col"
-        >
-          <div className="flex-grow flex flex-col items-center justify-center">
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+              {/* Reset Button */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1  text-slate-900 dark:text-slate-100/0">.</label>
+                <Button
+                  onClick={() => {
+                    setFakultas("all");
+                    setGedung("all");
+                    setLantai("all");
+                  }}
+                  className="w-full bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-700 border text-slate-900 dark:text-slate-100 py-2 px-4 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition duration-200 ease-in-out focus:outline-none  focus:ring-slate-500 focus:ring-opacity-50 font-normal"
+                  disabled={loading}
+                >
+                  Reset Filters
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center justify-center mt-4 text-muted-foreground">
-              Loading data...
-            </div>
-          </div>
-        </motion.div>
-      ) : (
-        <>
-          <motion.div
-            key="results"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            layout
-            className="sm:h-full min-h-[400px] flex flex-col"
-          > {
-              data ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white p-4 rounded-lg shadow-md">
-                      <h2 className="text-xl font-semibold mb-4">Current Month Summary</h2>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h3 className="font-semibold">Total Usage</h3>
-                          <p><span className="font-medium">Energy: </span>{data.month_data.total_daya.toFixed(2)} kWh</p>
-                          <p><span className="font-medium">Cost: </span>Rp{data.month_data.total_cost.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">Average Daily Usage</h3>
-                          <p><span className="font-medium">Energy: </span>{data.month_data.avg_daya.toFixed(2)} kWh/day</p>
-                          <p><span className="font-medium">Cost: </span>Rp{data.month_data.avg_cost.toFixed(2)} /day</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-lg shadow-md">
-                      <h2 className="text-xl font-semibold mb-4">Previous Month Summary</h2>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h3 className="font-semibold">Total Usage</h3>
-                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.total_daya?.toFixed(2) || 'N/A'} kWh</p>
-                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.total_cost?.toFixed(2) || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">Average Daily Usage</h3>
-                          <p><span className="font-medium">Energy: </span>{data.prev_month_data?.day_daya?.toFixed(2) || 'N/A'} kWh/day</p>
-                          <p><span className="font-medium">Cost: </span>Rp{data.prev_month_data?.day_cost?.toFixed(2) || 'N/A'} /day</p>
-                        </div>
-                      </div>
-                    </div>
+            {loading ? (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                layout
+                className="sm:h-full min-h-[400px] flex flex-col"
+              >
+                <div className="flex-grow flex flex-col items-center justify-center">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
                   </div>
-                  <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                    {/* Chart Section - Clustered Column Chart */}
-                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                      <h2 className="text-xl font-semibold mb-4">Energy Consumption by Phase</h2>
-                      <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={chartData}
-                            margin={{
-                              top: 20,
-                              right: 30,
-                              left: 20,
-                              bottom: 5,
-                            }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis label={{ value: 'Energy (kWh)', angle: -90, position: 'insideLeft' }} />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="R" fill="#8884d8" name="Phase R" />
-                            <Bar dataKey="S" fill="#82ca9d" name="Phase S" />
-                            <Bar dataKey="T" fill="#ffc658" name="Phase T" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                    <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                      <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-                      <div className="h-80">
-                        {
-                          !analysis ? (
-                            <motion.div
-                              key="analysis"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              className="flex items-center justify-center h-full"
-                            >
-                              <div className="flex-grow flex flex-col items-center justify-center">
-                                <div className="flex items-center justify-center">
-                                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                                </div>
-                                <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                                  Loading analysis...
-                                </div>
-                              </div>
-                            </motion.div>
-                          ) : (
-                            <div>
+                  <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                    Loading data...
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <>
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  layout
+                  className="sm:h-full min-h-[400px] flex flex-col"
+                > {
+                    data ? (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                          {/* Chart Section - Clustered Column Chart */}
+                          <Card>
+                            <CardHeader> <CardTitle className=" font-semibold">Energy Consumption by Phase</CardTitle> </CardHeader>
+                            <CardContent className="h-80">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                  data={chartData}
+                                  margin={{
+                                    top: 20,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 5,
+                                  }}
+                                >
+
+                                  <XAxis dataKey="date" stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
+                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                                      border: "none",
+                                      borderRadius: "8px",
+                                      padding: "8px",
+                                    }}
+                                    cursor={{
+                                      fill: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                                      stroke: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                                      strokeWidth: 0,
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Bar dataKey="R" fill="#67d790" name="Phase R" />
+                                  <Bar dataKey="S" fill="#f8ba52" name="Phase S" />
+                                  <Bar dataKey="T" fill="#f37474" name="Phase T" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
+                            <CardContent className="">
                               {
-                                analysis && (
+                                !analysis ? (
                                   <motion.div
                                     key="analysis"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="h-full"
+                                    className="flex items-center justify-center h-full"
                                   >
-                                    <p className="text-gray-700">
-                                      {analysis}
-                                    </p>
+                                    <div className="flex-grow flex flex-col items-center justify-center">
+                                      <div className="flex items-center justify-center">
+                                        <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                      </div>
+                                      <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                        Loading analysis...
+                                      </div>
+                                    </div>
                                   </motion.div>
+                                ) : (
+                                  <div>
+                                    {
+                                      analysis && (
+                                        <motion.div
+                                          key="analysis"
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          exit={{ opacity: 0 }}
+                                          className="h-full"
+                                        >
+                                          <p className="">
+                                            {analysis}
+                                          </p>
+                                        </motion.div>
+                                      )
+                                    }
+                                  </div>
                                 )
                               }
-                            </div>
-                          )
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  {/* Table Section */}
-                  <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">Daily Data</h2>
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-gray-100">
-                          <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Energy</TableHead>
-                            <TableHead>Cost</TableHead>
-                            <TableHead>Phase 1</TableHead>
-                            <TableHead>Phase 2</TableHead>
-                            <TableHead>Phase 3</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.daily_data.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{formatDate(item.timestamp)}</TableCell>
-                              <TableCell>{item.energy.toFixed(2)} kWh</TableCell>
-                              <TableCell>Rp{item.cost.toFixed(2)}</TableCell>
-                              <TableCell>{item["phase 1"].toFixed(2)} kWh</TableCell>
-                              <TableCell>{item["phase 2"].toFixed(2)} kWh</TableCell>
-                              <TableCell>{item["phase 3"].toFixed(2)} kWh</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="grid g rid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                {/* Chart Section - Clustered Column Chart */}
-                <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                  <h2 className="text-xl font-semibold mb-4">Data not Available</h2>
-                  <div className="h-80">
-                    Failed to fetch data from ELISA API. Please check analysis for more information.
-                  </div>
-                </div>
-                <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-                  <h2 className="text-xl font-semibold mb-4">AI Analysis</h2>
-                  <div className="h-80">
-                    {
-                      !analysis ? (
-                        <motion.div
-                          key="analysis"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="flex items-center justify-center h-full"
-                        >
-                          <div className="flex-grow flex flex-col items-center justify-center">
-                            <div className="flex items-center justify-center">
-                              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                            </div>
-                            <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                              Loading analysis...
-                            </div>
-                          </div>
-                        </motion.div>
-                      ) : (
-                        <div>
-                          {
-                            analysis && (
-                              <motion.div
-                                key="analysis"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="h-full"
-                              >
-                                <p className="text-gray-700">
-                                  {analysis}
-                                </p>
-                              </motion.div>
-                            )
-                          }
+                            </CardContent>
+                          </Card>
                         </div>
-                      )
-                    }
+                        {/* Table Section */}
+                        <Card className="mt-8">
+                          <CardHeader> <CardTitle className=" font-semibold">Daily Data</CardTitle> </CardHeader>
+                          <CardContent className="rounded-lg overflow-hidden">
+                            <Table>
+                              <TableHeader className="">
+                                <TableRow>
+                                  <TableHead>Date</TableHead>
+                                  <TableHead>Energy</TableHead>
+                                  <TableHead>Cost</TableHead>
+                                  <TableHead>Phase 1</TableHead>
+                                  <TableHead>Phase 2</TableHead>
+                                  <TableHead>Phase 3</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {data.daily_data.map((item, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{formatDate(item.timestamp)}</TableCell>
+                                    <TableCell>{formatNumber(item.energy)} kWh</TableCell>
+                                    <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
+                                    <TableCell>{formatNumber(item["phase 1"])} kWh</TableCell>
+                                    <TableCell>{formatNumber(item["phase 2"])} kWh</TableCell>
+                                    <TableCell>{formatNumber(item["phase 3"])} kWh</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </CardContent>
+                        </Card>
+                      </>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Chart Section - Clustered Column Chart */}
+                        <Card>
+                          <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
+                          <div className="">
+                            Failed to fetch data from ELISA API. Please check analysis for more information.
+                          </div>
+                        </Card>
+                        <Card>
+                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
+                          <CardContent className="">
+                            {
+                              !analysis ? (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="flex items-center justify-center h-full"
+                                >
+                                  <div className="flex-grow flex flex-col items-center justify-center">
+                                    <div className="flex items-center justify-center">
+                                      <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                    </div>
+                                    <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                      Loading analysis...
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ) : (
+                                <div>
+                                  {
+                                    analysis && (
+                                      <motion.div
+                                        key="analysis"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="h-full"
+                                      >
+                                        <p className="">
+                                          {analysis}
+                                        </p>
+                                      </motion.div>
+                                    )
+                                  }
+                                </div>
+                              )
+                            }
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )
+                  }
+                </motion.div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      {
+        data && (
+          <motion.div className="" initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}>
+            <Card className="mb-4 w-full">
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                  {
+                    comparison[0] > 0 ? (
+                      <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
+                    ) : (
+                      <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
+                    )
+                  }
+                  Comparison
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div>
+                  <p className="font-medium text-xs">Monthly Usage (Difference)</p>
+                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
+                  <p className="">{formatNumber(comparison[0])} kWh</p>
+                  {
+                    comparison[0] > 0 ? (
+                      <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
+                    ) : (
+                      <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
+                    )
+                  }
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Monthly Total</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.total_cost, 0)}</p>
+                    <p className="">{formatNumber(data.month_data.total_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Average</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.avg_cost, 0)}</p>
+                    <p className="">{formatNumber(data.month_data.avg_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
+                    <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
+                    <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
                   </div>
                 </div>
-              </div>
-              )
-            }
+              </CardContent>
+            </Card>
           </motion.div>
-        </>
-      )}
-    </div>
+        )
+      }
+    </motion.div>
   );
 }

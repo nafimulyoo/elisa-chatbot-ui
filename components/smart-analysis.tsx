@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Results } from "@/components/results";
 import { SuggestedQueries } from "@/components/suggested-queries";
 import { Search } from "@/components/search";
-import { Header } from "@/components/header";
 
 import { CodeBlock, atomOneLight } from 'react-code-blocks';
 
@@ -139,7 +138,14 @@ export default function SmartAnalysis() {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <div className="p-6 sm:p-8 flex flex-col flex-grow">
-            <Header handleClear={handleClear} />
+            <div className="flex items-center justify-between mb-6">
+              <h1
+                className="text-2xl sm:text-3xl font-semibold text-foreground flex items-center cursor-pointer text-gray-700"
+                onClick={() => handleClear()}
+              >
+                Smart Analysis Q&A
+              </h1>
+            </div>
             <Search
               handleClear={handleClear}
               handleSubmit={handleSubmit}

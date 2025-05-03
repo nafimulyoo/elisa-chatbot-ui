@@ -133,7 +133,7 @@ export const DynamicChart = ({
       case "line_chart":
         return (
           <LineChart data={transformedChartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            
             <XAxis 
               dataKey={Object.keys(transformedChartData[0])[0]} 
               tick={{ fontSize: 12 }}
@@ -168,7 +168,7 @@ export const DynamicChart = ({
       case "bar_chart":
         return (
           <BarChart data={transformedChartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            
             <XAxis 
               dataKey={Object.keys(transformedChartData[0])[0]} 
               tick={{ fontSize: 12 }}

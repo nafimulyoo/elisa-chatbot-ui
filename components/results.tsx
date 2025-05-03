@@ -96,7 +96,7 @@ export const Results = ({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-      <div className="rounded-xl border border-border bg-card p- sm:p-8 flex flex-col flex-grow mt-2">
+      <div className="rounded-xl border border-border bg-card sm:p-8 flex flex-col flex-grow mt-2">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-lg font-semibold text-foreground text-gray-700">
             Analysis Results:
