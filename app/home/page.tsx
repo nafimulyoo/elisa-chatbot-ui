@@ -279,7 +279,7 @@ export default function Home() {
       <Card className="col-span-5 lg:col-span-4 ">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-            <Activity className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Last Hour's Usage
+            <Activity className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Last Hour{"'"}s Usage
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -627,7 +627,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pb-4">
                 <div>
-                  <p className="font-medium text-xs">Last Hour's Total (Difference)</p>
+                  <p className="font-medium text-xs">Last Hour{"'"}s Total (Difference)</p>
                   <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
                   <p className="">{formatNumber(comparison[0])} kWh</p>
                   {
