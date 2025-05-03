@@ -568,9 +568,9 @@ export default function Home() {
                     <p className="">{formatNumber(comparison[0])} kWh</p>
                     {
                       comparison[0] > 0 ? (
-                        <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
+                        <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month{"'"}s average</p>
                       ) : (
-                        <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
+                        <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month{"'"}s average</p>
                       )
                     }
                   </div>
@@ -596,12 +596,12 @@ export default function Home() {
                       <p className="">{formatNumber(data.month_data.avg_daya)} kWh</p>
                     </div>
                     <div>
-                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
+                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month{"'"}s Total</h3>
                       <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
                       <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
                     </div>
                     <div>
-                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
+                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month{"'"}s Daily Average</h3>
                       <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
                       <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
                     </div>

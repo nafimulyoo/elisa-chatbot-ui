@@ -25,14 +25,14 @@ export function Header() {
 
     return (
         <>
-            <header className="flex items-center justify-between pb-4 border-b dark:border-slate-700/50 mb-6">
+            <header className="flex items-center justify-between pb-4 sm:pb-2 border-b dark:border-slate-700/50 mb-4 -mt-3 sm:mt-0">
 
                 <div className="flex items-center space-x-2 text-slate">
-                    <div className="flex">
+                    <div className="flex mt-5 sm:mt-0">
                         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="w-auto h-6 text-yellow-400 iconify iconify--twemoji" width="1em" height="1em" viewBox="0 0 36 36">
                             <path fill="#FFAC33" d="M32.938 15.651A1 1 0 0 0 32 15H19.925L26.89 1.458A1 1 0 0 0 26 0a1 1 0 0 0-.653.243L18 6.588L3.347 19.243A1 1 0 0 0 4 21h12.075L9.11 34.542A1 1 0 0 0 10 36a1 1 0 0 0 .653-.243L18 29.412l14.653-12.655a1 1 0 0 0 .285-1.106"></path>
                         </svg>
-                        <h1 className="font-bold text-4xl tracking-wide">Elisa</h1>
+                        <h1 className="font-bold text-3xl tracking-wide">Elisa</h1>
                     </div>
                     <div className="leading-3 text-xs border-b border-transparent pb-3 pl-4 mt-3 self-center self-start">
                         <small className="hidden sm:block text-xs">Electrical Energy and Water Information System</small>

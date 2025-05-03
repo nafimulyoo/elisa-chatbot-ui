@@ -8,10 +8,11 @@ import { Results } from "@/components/results";
 import { SuggestedQueries } from "@/components/suggested-queries";
 import { Search } from "@/components/search";
 
-import { CodeBlock, atomOneLight } from 'react-code-blocks';
+import { CodeBlock, atomOneLight, atomOneDark } from 'react-code-blocks';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card-themed";
+import { useTheme } from "next-themes";
 
 export default function SmartAnalysis() {
   const [inputValue, setInputValue] = useState("");
@@ -24,6 +25,7 @@ export default function SmartAnalysis() {
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
   const [notebook, setNotebook]: any = useState({});
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const { theme, setTheme } = useTheme();
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -137,7 +139,7 @@ export default function SmartAnalysis() {
       <Card>
         <CardHeader className="mb-4 py-3">
           <CardTitle onClick={() => handleClear()} className="text-2xl font-semibold  text-slate-900 dark:text-slate-100">
-          <BrainCircuit className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Smart Analysis Q&A
+            <BrainCircuit className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Smart Analysis Q&A
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -172,10 +174,10 @@ export default function SmartAnalysis() {
 
                       <div className="flex-grow flex flex-col items-center justify-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                          <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
                         </div>
-                        <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                          {loadingStep}
+                        <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                          Loading analysis...
                         </div>
                       </div>
 
@@ -214,49 +216,78 @@ export default function SmartAnalysis() {
                         </TabsContent>
 
                         <TabsContent value="code" className="flex-grow">
+                              <motion.div
+                                className=""
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                              >
+
+                              
                           {
                             notebook && (
                               notebook.cells.map((cell: any, index: number) => (
-                                <div key={index} className="p-4">
-                                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                    Code Cell {index + 1}
-                                  </h3>
-                                  <pre className=" p-4 rounded-md overflow-x-auto">
+                                <Card key={index} className="mt-4">
+                                  <CardHeader className="font-semibold">
+                                    <CardTitle>
+                                      Code Cell {index + 1}
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
 
-                                    <CodeBlock
-                                      text={cell.source}
-                                      language="python"
-                                      showLineNumbers={true}
-                                      theme={atomOneLight}
-                                    />
-                                  </pre>
+                                    <pre className=" p-4 rounded-md overflow-x-auto">
 
-                                  {cell.outputs && cell.outputs.length > 0 && (
-                                    <div className="mt-4">
-                                      <h4 className="text-md font-semibold text-gray-700 mb-2">
-                                        Output
-                                      </h4>
-                                      <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto">
-                                        {
-                                          cell.outputs.map((output: any, outputIndex: number) => (
-                                            <div key={outputIndex}>
-                                              {output.data && output.data["text/plain"] ? (
-                                                <div>{output.data["text/plain"]}</div>
-                                              ) : (
-                                                <div>{output.text}</div>
-                                              )}
-                                            </div>
-                                          ))
+                                      <CodeBlock
+                                        text={cell.source}
+                                        language="python"
+                                        showLineNumbers={true}
+                                        theme={theme === "dark" ? atomOneDark : atomOneLight}
+                                        customStyle={
+                                          {
+                                            backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                                            color: theme === "dark" ? "#cbd5e1" : "#000000",
+                                            padding: "1rem",
+                                            paddingTop: "2rem",
+                                            paddingBottom: "2rem",
+                                            borderRadius: "0.5rem",
+                                          }
                                         }
-                                      </pre>
-                                    </div>
-                                  )}
-                                </div>
+                                      />
+                                    </pre>
+
+                                    {cell.outputs && cell.outputs.length > 0 && (
+                                      <Card className="mt-4">
+                                        <CardHeader>
+                                          <CardTitle className="text-md font-semibold text-slate-900 dark:text-slate-100">
+                                            Output
+                                          </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-0">
+                                          <pre className="p-4 overflow-x-auto bg-slate-100 dark:bg-slate-800 text-wrap">
+                                            {
+                                              cell.outputs.map((output: any, outputIndex: number) => (
+                                                <div key={outputIndex}>
+                                                  {output.data && output.data["text/plain"] ? (
+                                                    <div>{output.data["text/plain"]}</div>
+                                                  ) : (
+                                                    <div>{output.text}</div>
+                                                  )}
+                                                </div>
+                                              ))
+                                            }
+
+                                          </pre>
+                                        </CardContent>
+                                      </Card>
+                                    )}
+                                  </CardContent>
+                                </Card>
                               )
                               )
 
                             )
                           }
+                          </motion.div>
                         </TabsContent>
                       </Tabs>
 

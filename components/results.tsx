@@ -97,7 +97,7 @@ export const Results = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <Card className="">
+      <Card className="mt-4">
         <CardHeader>
           <CardTitle className=" font-semibold h-9">
             <div className="flex justify-between">
@@ -119,9 +119,9 @@ export const Results = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-muted-foreground">
+          <div className="">
             {explanation.split("\n").map((line, index) => (
-              <p key={index} className="text-muted-foreground mb-2">
+              <p key={index} className="">
                 {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
                   if (part.startsWith("**") && part.endsWith("**")) {
                     return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;

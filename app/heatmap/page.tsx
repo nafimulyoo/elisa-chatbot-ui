@@ -415,7 +415,7 @@ export default function Home() {
                               data={heatmapData}
                               xLabels={xLabels}
                               yLabels={yLabels}
-                              cellHeight="2.5rem"
+                              cellHeight="2rem"
                               cellStyle={(_x, _y, ratio) => {
                                 // Determine color based on clustered thresholds
                                 let color;

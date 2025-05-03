@@ -9,45 +9,24 @@ export const SuggestedQueries = ({
   handleSuggestionClick: (suggestion: string) => void;
 }) => {
   var suggestionQueries: any = [];
-  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
-    suggestionQueries = [
-      ["What is ELISA", "Basic Knowledge"],
-      ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
-      ["What is the weather like today", "Unrelevant"],
-      ["What is your favorite color", "Unrelevant"],
-      ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
-      ["What is the usage trend of Fakultas Kedokteran", "Data Not Available"],
-      ["What is the usage trend of ITB since last year", "Basic Analysis"],
-      ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
-      ["Gedung Labtek VI highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
-      ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
-      ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
-      ["Forecast CC Barat usage during holidays", "Advanced Analysis"],
-      ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
-      ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
-      ["Predict FTI usage during next major event", "Advanced Analysis"],
-    ]
-  }
-  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "production") {
-    suggestionQueries = [
-      ["What is ELISA", "Basic Knowledge"],
-      ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
-      ["What is the weather like today", "Unrelevant"],
-      ["What is your favorite color", "Unrelevant"],
-      ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
-      ["What is the usage trend of Fakultas Kedokteran", "Data Not Available"],
-      ["What is the usage trend of ITB since last year", "Basic Analysis"],
-      ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
-      ["Gedung Labtek X highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
-      ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
-      ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
-      ["Forecast CC Barat usage during holidays", "Advanced Analysis"],
-      ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
-      ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
-      ["Predict FTI usage during next major event", "Advanced Analysis"],
-    ]
-  }
-
+  suggestionQueries = [
+    ["What is ELISA?", "Basic Knowledge"],
+    ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
+    ["What is the weather like today?", "Unrelevant"],
+    ["What is your favorite color?", "Unrelevant"],
+    ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
+    ["What is the usage trend of Fakultas Kedokteran?", "Data Not Available"],
+    ["What is the usage trend of ITB since last year?", "Basic Analysis"],
+    ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
+    ["Gedung Labtek X highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
+    ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
+    ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
+    ["Peak hours usage of Labtek VI and FTI last week", "Basic Analysis"],
+    ["Average daily usage of Labtek VI on the 3rd floor", "Basic Analysis"],
+    ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
+    ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
+  ]
+  
   return (
     <motion.div
       key="suggestions"
