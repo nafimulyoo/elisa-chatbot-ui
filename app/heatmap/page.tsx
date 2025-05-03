@@ -41,7 +41,7 @@ export default function Home() {
     const end = new Date(today);
     const start = new Date(today);
     start.setDate(today.getDate() - 6); // 6 days before today
-  
+
     // Format as 'YYYY-MM-DD' (local time)
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
@@ -49,7 +49,7 @@ export default function Home() {
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
-  
+
     return {
       start: formatDate(start),
       end: formatDate(end),
@@ -86,7 +86,8 @@ export default function Home() {
 
     // Prepare labels
     const xLabels = Array(24).fill(0).map((_, i) => `${i}`);
-    const yLabels = dayNames;
+    // first three letters of the day names
+    const yLabels = dayNames.map(day => day.slice(0, 3));
 
     return { xLabels, yLabels, data: grid };
   };
@@ -115,17 +116,16 @@ export default function Home() {
 
   // Fetch gedung options when fakultas changes
   useEffect(() => {
-    if (fakultas === "all") {
-      setGedung("all");
-      setGedungOptions([]);
-      setLantai("all");
-      setLantaiOptions([]);
-      return;
-    }
-
     const fetchGedung = async () => {
       try {
-        const response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+        var response;
+        if (fakultas === "all") {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=-`);
+        }
+        else {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+        }
+
         if (!response.ok) throw new Error('Failed to fetch gedung');
         const data = await response.json();
         setGedungOptions(data.gedung || []);
@@ -136,11 +136,11 @@ export default function Home() {
       }
     };
     fetchGedung();
-  }, [fakultas, ANALYSIS_URL]);
+  }, [fakultas]);
 
   // Fetch lantai options when gedung changes
   useEffect(() => {
-    if (gedung === "all" || fakultas === "all") {
+    if (gedung === "all") {
       setLantai("all");
       setLantaiOptions([]);
       return;
@@ -152,7 +152,8 @@ export default function Home() {
           `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
         );
         if (!response.ok) throw new Error('Failed to fetch lantai');
-        const data = await response.json();
+        var data = await response.json();
+        data.lantai = data.lantai.filter((lantai: Option) => lantai.value !== "Total");;
         setLantaiOptions(data.lantai || []);
         setLantai("all");
       } catch (err) {
@@ -225,175 +226,156 @@ export default function Home() {
   }, [dateRange, fakultas, gedung, lantai]);
 
   // Handle date range change (always adjust to full week)
-const handleDateChange = (newDate: string) => {
-  const date = new Date(newDate);
-  const start = new Date(date);
-  start.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
-  
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6); // End of week (Saturday)
+  const handleDateChange = (newDate: string) => {
+    const date = new Date(newDate);
+    const start = new Date(date);
+    start.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
 
-  // Format dates in YYYY-MM-DD (local time)
-  const formatDate = (d: Date) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6); // End of week (Saturday)
+
+    // Format dates in YYYY-MM-DD (local time)
+    const formatDate = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    setDateRange({
+      start: formatDate(start),
+      end: formatDate(end),
+    });
   };
-
-  setDateRange({
-    start: formatDate(start),
-    end: formatDate(end),
-  });
-};
 
   return (
     <motion.div initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}>
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}>
 
-    <Card>
-      <CardHeader className="mb-4 py-3">
-        <CardTitle className="text-2xl font-semibold  text-slate-900 dark:text-slate-100">
-          <Flame className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Weekly Usage Heatmap
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <Card>
+        <CardHeader className="mb-4 py-3">
+          <CardTitle className="text-2xl font-semibold  text-slate-900 dark:text-slate-100">
+            <Flame className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Weekly Usage Heatmap
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
 
-        <div className="">
-          {/* Filter Section */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Week Starting</label>
-              <input
-                type="date"
-                value={dateRange.start}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="p-2 border rounded-md text-sm dark:bg-slate-900/10 
+          <div className="">
+            {/* Filter Section */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Week Starting</label>
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="p-2 border rounded-md text-sm dark:bg-slate-900/10 
                 dark:border-slate-700/50  text-slate-900 dark:text-slate-100 foc
                 us:outline-none focus:ring focus:ring-slate-500 
                 focus:ring-opacity-50 disabled:opacity-50 hover:cursor-pointer"
-                max={new Date().toISOString().split('T')[0]} // Prevent future dates
-              />
-            </div>
-
-            {/* Fakultas Select */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Faculty</label>
-              <Select
-                value={fakultas}
-                onValueChange={(value) => {
-                  setFakultas(value);
-                  setGedung("all"); // Reset gedung when fakultas changes
-                  setLantai("all"); // Reset lantai when fakultas changes
-                }}
-              >
-                <SelectTrigger className="py-5">
-                  <SelectValue placeholder="Select Fakultas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Faculty</SelectItem>
-                  {fakultasOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Gedung Select */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Building</label>
-              <Select
-                value={gedung}
-                onValueChange={(value) => {
-                  setGedung(value);
-                  setLantai("all"); // Reset lantai when gedung changes
-                }}
-                disabled={fakultas === "all"}
-              >
-                <SelectTrigger className="py-5">
-                  <SelectValue
-                    placeholder={
-                      fakultas !== "all" ? "Select Gedung" : "Select Fakultas first"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Building</SelectItem>
-                  {gedungOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Lantai Select */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Floor</label>
-              <Select
-                value={lantai}
-                onValueChange={setLantai}
-                disabled={gedung === "all" || fakultas === "all"}
-              >
-                <SelectTrigger className="py-5">
-                  <SelectValue
-                    placeholder={
-                      gedung !== "all" ? "Select Lantai" : "Select Gedung first"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Floor</SelectItem>
-                  {lantaiOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Reset Button */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1  text-slate-900 dark:text-slate-100/0">.</label>
-              <Button
-                onClick={() => {
-                  setFakultas("all");
-                  setGedung("all");
-                  setLantai("all");
-                }}
-                className="w-full bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-700 border text-slate-900 dark:text-slate-100 py-2 px-4 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition duration-200 ease-in-out focus:outline-none  focus:ring-slate-500 focus:ring-opacity-50 font-normal"
-                disabled={loading}
-              >
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-
-          {loading ? (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              layout
-              className="sm:h-full min-h-[400px] flex flex-col"
-            >
-              <div className="flex-grow flex flex-col items-center justify-center">
-                <div className="flex items-center justify-center">
-                  <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
-                </div>
-                <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                  Loading data...
-                </div>
+                  max={new Date().toISOString().split('T')[0]} // Prevent future dates
+                />
               </div>
-            </motion.div>
-          ) : (
-            <>
+
+              {/* Fakultas Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Faculty</label>
+                <Select
+                  value={fakultas}
+                  onValueChange={(value) => {
+                    setFakultas(value);
+                    setGedung("all"); // Reset gedung when fakultas changes
+                    setLantai("all"); // Reset lantai when fakultas changes
+                  }}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue placeholder="Select Fakultas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Faculty</SelectItem>
+                    {fakultasOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Gedung Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Building</label>
+                <Select
+                  value={gedung}
+                  onValueChange={(value) => {
+                    setGedung(value);
+                    setLantai("all"); // Reset lantai when gedung changes
+                  }}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue
+                      placeholder={
+                        fakultas !== "all" ? "Select Gedung" : "Select Fakultas first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Building</SelectItem>
+                    {gedungOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Lantai Select */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Floor</label>
+                <Select
+                  value={lantai}
+                  onValueChange={setLantai}
+                  disabled={gedung === "all"}
+                >
+                  <SelectTrigger className="py-5">
+                    <SelectValue
+                      placeholder={
+                        gedung !== "all" ? "Select Lantai" : "Select Gedung first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Floor</SelectItem>
+                    {lantaiOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Reset Button */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1  text-slate-900 dark:text-slate-100/0">.</label>
+                <Button
+                  onClick={() => {
+                    setFakultas("all");
+                    setGedung("all");
+                    setLantai("all");
+                  }}
+                  variant="outline"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            </div>
+
+            {loading ? (
               <motion.div
                 key="results"
                 initial={{ opacity: 0 }}
@@ -401,196 +383,214 @@ const handleDateChange = (newDate: string) => {
                 exit={{ opacity: 0 }}
                 layout
                 className="sm:h-full min-h-[400px] flex flex-col"
-              > {
-                  data ? (
-                    <>
-                      {/* Heatmap Section */}
-                      <Card className="mb-6">
-                        <CardHeader> <CardTitle className=" font-semibold">
-                          Energy Usage Heatmap ({new Date(data.dates.start).toLocaleDateString()} - {new Date(data.dates.end).toLocaleDateString()})
-                        </CardTitle> </CardHeader>
-                        <CardContent className="p-4">
-                          <HeatMapGrid
-                            data={heatmapData}
-                            xLabels={xLabels}
-                            yLabels={yLabels}
-                            cellHeight="2rem"
-                            cellStyle={(_x, _y, ratio) => {
-                              // Determine color based on clustered thresholds
-                              let color;
-                              if (ratio == 0) {
-                                if (theme === "dark") {
-                                  color = [15, 23, 42]
-                                }
-                                else {
-                                  color = [240, 240, 240]
-                                }
-
-                              }
-                              else if (ratio <= 0.33) {
-                                color = [103, 215, 144];  // Green - low usage
-                              } else if (ratio <= 0.66) {
-                                color = [248, 186, 82];   // Yellow - medium usage
-                              } else {
-                                color = [243, 116, 116];  // Red - high usage
-                              }
-
-                              return {
-                                background: `rgb(${color.join(',')})`,
-                                fontSize: "0.8rem",
-                                color: ratio > 0.6 ? "white" : "black", // Keep text contrast logic
-                                transition: "background-color 0.2s ease", // Optional for hover effects
-                                border: "0px",
-                                margin: "1px"
-                              };
-                            }}
-                            cellRender={(y, x, value) => (
-                              <TooltipProvider delayDuration={0}>
-
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="h-full w-full hover:bg-slate-900/20 hover:block h-full"/>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="dark:bg-slate-900 dark:text-slate-100 border-0">
-                                    <div className=" gap-1">
-                                      <div className="flex gap-2 items-center">
-                                        <span className="">Hour {xLabels[x]}</span>
-                                        <span className="dark:text-slate-400">|</span>
-                                        <span className="">{yLabels[y]}</span>
-                                      </div>
-                                      <div className="">
-                                        <span className="text-cyan-500 dark:text-cyan-400">
-                                          {(value?.toFixed(2) || 0)} kWh
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            xLabelsStyle={(index) => ({
-                              fontSize: "0.8rem",
-                              textTransform: "uppercase",
-                              color: theme === "dark" ? "#dbe1e9" : "#0f1418"
-                            })}
-                            yLabelsStyle={() => ({
-                              fontSize: "0.8rem",
-                              textTransform: "uppercase",
-                              color: theme === "dark" ? "#dbe1e9" : "#0f1418"
-                            })}
-                          />
-                          <div className="flex justify-between my-4 text-sm">
-                            <span>Lowest: {minValue.toFixed(2)} kWh</span>
-                            <span>Highest: {maxValue.toFixed(2)} kWh</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      <Card className="rounded-lg">
-                        <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                        <CardContent className="overflow-y-auto">
-                          {
-                            !analysis ? (
-                              <motion.div
-                                key="analysis"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center justify-center h-full"
-                              >
-                                <div className="flex-grow flex flex-col items-center justify-center">
-                                  <div className="flex items-center justify-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
-                                  </div>
-                                  <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                                    Loading analysis...
-                                  </div>
-                                </div>
-                              </motion.div>
-                            ) : (
-                              <div>
-                                {
-                                  analysis && (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="h-full"
-                                    >
-                                      <p className="">
-                                        {analysis}
-                                      </p>
-                                    </motion.div>
-                                  )
-                                }
-                              </div>
-                            )
-                          }
-                        </CardContent>
-                      </Card>
-
-                    </>
-                  ) : (
-                    <div className="grid g rid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Chart Section - Clustered Column Chart */}
-                      <div className="mb-8 rounded-lg shadow-md">
-                        <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
-                        <CardContent className="">
-                          Failed to fetch data from ELISA API. Please check analysis for more information.
-                        </CardContent>
-                      </div>
-                      <div className="mb-8 rounded-lg shadow-md">
-                        <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                        <CardContent className="">
-                          {
-                            !analysis ? (
-                              <motion.div
-                                key="analysis"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center justify-center h-full"
-                              >
-                                <div className="flex-grow flex flex-col items-center justify-center">
-                                  <div className="flex items-center justify-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
-                                  </div>
-                                  <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                                    Loading analysis...
-                                  </div>
-                                </div>
-                              </motion.div>
-                            ) : (
-                              <div>
-                                {
-                                  analysis && (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="h-full"
-                                    >
-                                      <p className="">
-                                        {analysis}
-                                      </p>
-                                    </motion.div>
-                                  )
-                                }
-                              </div>
-                            )
-                          }
-                        </CardContent>
-                      </div>
-                    </div>
-                  )
-
-                }
+              >
+                <div className="flex-grow flex flex-col items-center justify-center">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                  </div>
+                  <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                    Loading data...
+                  </div>
+                </div>
               </motion.div>
-            </>)}
-        </div>
-      </CardContent>
-    </Card>
+            ) : (
+              <>
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  layout
+                  className="sm:h-full min-h-[400px] flex flex-col"
+                > {
+                    data ? (
+                      <>
+                        {/* Heatmap Section */}
+                        <Card className="mb-6">
+                          <CardHeader> <CardTitle className=" font-semibold">
+                            Energy Usage Heatmap ({new Date(data.dates.start).toLocaleDateString()} - {new Date(data.dates.end).toLocaleDateString()})
+                          </CardTitle> </CardHeader>
+                          <CardContent className="p-4">
+                            <HeatMapGrid
+                              data={heatmapData}
+                              xLabels={xLabels}
+                              yLabels={yLabels}
+                              cellHeight="2.5rem"
+                              cellStyle={(_x, _y, ratio) => {
+                                // Determine color based on clustered thresholds
+                                let color;
+                                if (ratio == 0) {
+                                  if (theme === "dark") {
+                                    color = [15, 23, 42]
+                                  }
+                                  else {
+                                    color = [240, 240, 240]
+                                  }
+
+                                }
+                                else if (ratio <= 0.33) {
+                                  color = [103, 215, 144];  // Green - low usage
+                                } else if (ratio <= 0.66) {
+                                  color = [248, 186, 82];   // Yellow - medium usage
+                                } else {
+                                  color = [243, 116, 116];  // Red - high usage
+                                }
+
+                                return {
+                                  background: `rgb(${color.join(',')})`,
+                                 
+                                  transition: "background-color 0.2s ease", // Optional for hover effects
+                                  border: "0px",
+                                  margin: "1px"
+                                };
+                              }}
+                              cellRender={(y, x, value) => (
+                                <TooltipProvider delayDuration={0}>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="h-full w-full hover:bg-slate-900/20 hover:block h-full" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="dark:bg-slate-900 dark:text-slate-100 border-0">
+                                      <div className=" gap-1">
+                                        <div className="flex gap-2 items-center">
+                                          <span className="">Hour {xLabels[x]}</span>
+                                          <span className="dark:text-slate-400">|</span>
+                                          <span className="">{yLabels[y]}</span>
+                                        </div>
+                                        <div className="">
+                                          <span className="text-cyan-500 dark:text-cyan-400">
+                                            {(value?.toFixed(2) || 0)} kWh
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              xLabelsStyle={(index) => ({
+                                fontSize: "0.8rem",
+                                textTransform: "uppercase",
+                                color: theme === "dark" ? "#dbe1e9" : "#0f1418"
+                              })}
+                              yLabelsStyle={() => ({
+                                fontSize: "0.8rem",
+                                textTransform: "uppercase",
+                                color: theme === "dark" ? "#dbe1e9" : "#0f1418"
+                              })}
+                            />
+                            <div className="flex justify-between my-4 text-sm">
+                              <span>Lowest: {minValue.toFixed(2)} kWh</span>
+                              <span>Highest: {maxValue.toFixed(2)} kWh</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="rounded-lg">
+                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
+                          <CardContent className="overflow-y-auto">
+                            {
+                              !analysis ? (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="flex items-center justify-center h-full"
+                                >
+                                  <div className="flex-grow flex flex-col items-center justify-center">
+                                    <div className="flex items-center justify-center">
+                                      <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                    </div>
+                                    <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                      Loading analysis...
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ) : (
+                                <div>
+                                  {
+                                    analysis && (
+                                      <motion.div
+                                        key="analysis"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="h-full"
+                                      >
+                                        <p className="">
+                                          {analysis}
+                                        </p>
+                                      </motion.div>
+                                    )
+                                  }
+                                </div>
+                              )
+                            }
+                          </CardContent>
+                        </Card>
+
+                      </>
+                    ) : (
+                      <div className="grid g rid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Chart Section - Clustered Column Chart */}
+                        <div className="mb-8 rounded-lg shadow-md">
+                          <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
+                          <CardContent className="">
+                            Failed to fetch data from ELISA API. Please check analysis for more information.
+                          </CardContent>
+                        </div>
+                        <div className="mb-8 rounded-lg shadow-md">
+                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
+                          <CardContent className="">
+                            {
+                              !analysis ? (
+                                <motion.div
+                                  key="analysis"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="flex items-center justify-center h-full"
+                                >
+                                  <div className="flex-grow flex flex-col items-center justify-center">
+                                    <div className="flex items-center justify-center">
+                                      <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                    </div>
+                                    <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                      Loading analysis...
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ) : (
+                                <div>
+                                  {
+                                    analysis && (
+                                      <motion.div
+                                        key="analysis"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="h-full"
+                                      >
+                                        <p className="">
+                                          {analysis}
+                                        </p>
+                                      </motion.div>
+                                    )
+                                  }
+                                </div>
+                              )
+                            }
+                          </CardContent>
+                        </div>
+                      </div>
+                    )
+
+                  }
+                </motion.div>
+              </>)}
+          </div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }

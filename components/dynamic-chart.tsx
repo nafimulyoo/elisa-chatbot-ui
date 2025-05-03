@@ -17,18 +17,17 @@ import {
   Cell,
 } from "recharts";
 import { useState, useMemo } from "react";
+import { useTheme } from "next-themes";
 
 const COLORS = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff8042",
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#A4DE6C",
-  "#D0ED57",
+  "#06b6d4",
+  "#22c55e",
+  "#ef4444",
+  "#facc15",
+  "#8b5cf6",
+  "#f97316",
+  "#10b981",
+  "#3b82f6"
 ];
 
 interface DynamicChartProps {
@@ -41,6 +40,7 @@ export const DynamicChart = ({
   visualizationType,
 }: DynamicChartProps) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const { theme, setTheme } = useTheme();
 
   // Memoize and transform data to ensure numeric values
   const { transformedChartData, categories, colorMap } = useMemo(() => {
@@ -88,15 +88,15 @@ export const DynamicChart = ({
     }
 
     const columns = Object.keys(transformedChartData[0] || {});
-    
+
     // If first column is categorical (not numeric), skip it for numeric columns
     const firstColumn = columns[0];
     const isFirstColumnNumeric = typeof transformedChartData[0][firstColumn] === "number";
-    
+
     return columns.filter((key, index) => {
       // Skip first column if it's not numeric
       if (index === 0 && !isFirstColumnNumeric) return false;
-      
+
       return (
         typeof transformedChartData[0][key] === "number" &&
         !key.toLowerCase().includes("id") &&
@@ -109,7 +109,7 @@ export const DynamicChart = ({
   const canRenderScatter = numericColumns.length >= 2;
 
   // Determine if we should cluster (for bar/line charts with multiple series)
-  const shouldCluster = numericColumns.length > 1 && 
+  const shouldCluster = numericColumns.length > 1 &&
     (visualizationType === "bar_chart" || visualizationType === "line_chart");
 
   const handleMouseEnter = (data: any, index: number) => {
@@ -133,13 +133,22 @@ export const DynamicChart = ({
       case "line_chart":
         return (
           <LineChart data={transformedChartData}>
-            
-            <XAxis 
-              dataKey={Object.keys(transformedChartData[0])[0]} 
+            <XAxis
+              dataKey={Object.keys(transformedChartData[0])[0]}
               tick={{ fontSize: 12 }}
+              stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
             />
-            <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
+            <YAxis tick={{ fontSize: 12 }}
+              stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "8px",
+              }}
+            />
             <Legend />
             {shouldCluster ? (
               numericColumns.map((column, index) => (
@@ -150,6 +159,8 @@ export const DynamicChart = ({
                   stroke={COLORS[index % COLORS.length]}
                   activeDot={{ r: 8 }}
                   name={column.replace(/_/g, ' ')}
+                  dot={false}
+                  strokeWidth={2}
                 />
               ))
             ) : (
@@ -157,8 +168,11 @@ export const DynamicChart = ({
                 <Line
                   type="monotone"
                   dataKey={numericColumns[0]}
-                  stroke={COLORS[0]}
+                  stroke="#06b6d4"
                   activeDot={{ r: 8 }}
+                  dot={false}
+                  strokeWidth={2}
+
                 />
               )
             )}
@@ -168,13 +182,30 @@ export const DynamicChart = ({
       case "bar_chart":
         return (
           <BarChart data={transformedChartData}>
-            
-            <XAxis 
-              dataKey={Object.keys(transformedChartData[0])[0]} 
+
+            <XAxis
+              dataKey={Object.keys(transformedChartData[0])[0]}
               tick={{ fontSize: 12 }}
+              stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
             />
-            <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
+            <YAxis tick={{ fontSize: 12 }}
+              stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
+            />
+            <Tooltip
+
+              cursor={{
+                fill: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                stroke: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                strokeWidth: 0,
+              }}
+
+              contentStyle={{
+                backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "8px",
+              }}
+            />
             <Legend />
             {shouldCluster ? (
               numericColumns.map((column, index) => (
@@ -211,7 +242,7 @@ export const DynamicChart = ({
                 </Bar>
               )
             )}
-            
+
           </BarChart>
 
 
@@ -230,7 +261,7 @@ export const DynamicChart = ({
 
       //   // Get the first column name (for category)
       //   const firstColumn = Object.keys(transformedChartData[0])[0];
-        
+
       //   return (
 
       //     <ScatterChart>
@@ -247,7 +278,7 @@ export const DynamicChart = ({
       //       />
       //       <Tooltip cursor={{ strokeDasharray: '3 3' }} />
       //       <Legend />
-            
+
       //       {/* Create a separate Scatter group for each category */}
       //       {categories.map((category) => (
       //         <Scatter

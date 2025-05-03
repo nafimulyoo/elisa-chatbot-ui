@@ -20,7 +20,7 @@ export function Canvas() {
     canvas.height = canvas.offsetHeight
 
     const particles: Particle[] = []
-    const particleCount = 100
+    const particleCount = 200
 
     if (canvas) {
       
@@ -35,7 +35,7 @@ export function Canvas() {
 
       constructor() {
         this.x = Math.random() * canvas!.width
-        this.y = Math.random() * canvas!.height
+        this.y = Math.random() * canvas!.height/2
         this.size = Math.random() * 3 + 1
         this.speedX = (Math.random() - 0.5) * 0.5
         this.speedY = (Math.random() - 0.5) * 0.5

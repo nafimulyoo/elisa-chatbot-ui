@@ -111,54 +111,54 @@ export default function Home() {
     fetchFakultas();
   }, [ANALYSIS_URL]);
 
- // Fetch gedung options when fakultas changes
-   useEffect(() => {
-     const fetchGedung = async () => {
-       try {
-         var response;
-         if (fakultas === "all") {
-           response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=-`);
-         }
-         else {
-           response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
-         }
- 
-         if (!response.ok) throw new Error('Failed to fetch gedung');
-         const data = await response.json();
-         setGedungOptions(data.gedung || []);
-         setGedung("all");
-         setLantai("all");
-       } catch (err) {
-         console.error("Error fetching gedung:", err);
-       }
-     };
-     fetchGedung();
-   }, [fakultas]);
- 
-   // Fetch lantai options when gedung changes
-   useEffect(() => {
-     if (gedung === "all") {
-       setLantai("all");
-       setLantaiOptions([]);
-       return;
-     }
- 
-     const fetchLantai = async () => {
-       try {
-         const response = await fetch(
-           `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
-         );
-         if (!response.ok) throw new Error('Failed to fetch lantai');
-         var data = await response.json();
-         data.lantai = data.lantai.filter((lantai: Option) => lantai.value !== "Total");
-         setLantaiOptions(data.lantai || []);
-         setLantai("all");
-       } catch (err) {
-         console.error("Error fetching lantai:", err);
-       }
-     };
-     fetchLantai();
-   }, [gedung, fakultas]);
+  // Fetch gedung options when fakultas changes
+  useEffect(() => {
+    const fetchGedung = async () => {
+      try {
+        var response;
+        if (fakultas === "all") {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=-`);
+        }
+        else {
+          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+        }
+
+        if (!response.ok) throw new Error('Failed to fetch gedung');
+        const data = await response.json();
+        setGedungOptions(data.gedung || []);
+        setGedung("all");
+        setLantai("all");
+      } catch (err) {
+        console.error("Error fetching gedung:", err);
+      }
+    };
+    fetchGedung();
+  }, [fakultas]);
+
+  // Fetch lantai options when gedung changes
+  useEffect(() => {
+    if (gedung === "all") {
+      setLantai("all");
+      setLantaiOptions([]);
+      return;
+    }
+
+    const fetchLantai = async () => {
+      try {
+        const response = await fetch(
+          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+        );
+        if (!response.ok) throw new Error('Failed to fetch lantai');
+        var data = await response.json();
+        data.lantai = data.lantai.filter((lantai: Option) => lantai.value !== "Total");
+        setLantaiOptions(data.lantai || []);
+        setLantai("all");
+      } catch (err) {
+        console.error("Error fetching lantai:", err);
+      }
+    };
+    fetchLantai();
+  }, [gedung, fakultas]);
 
 
   // Fetch data when filters change
@@ -241,10 +241,10 @@ export default function Home() {
   })) || [];
 
   return (
-    <motion.div className="grid grid-cols-1 md:grid-cols-5 gap-4" initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}>
-      <Card className="col-span-4 md:col-span-4 mb-4">
+    <motion.div className="grid grid-cols-5 gap-4" initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}>
+      <Card className="col-span-5 lg:col-span-4">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             <Calendar className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Daily Usage
@@ -265,7 +265,7 @@ export default function Home() {
                 dark:border-slate-700/50  text-slate-900 dark:text-slate-100 foc
                 us:outline-none focus:ring focus:ring-slate-500 
                 focus:ring-opacity-50 disabled:opacity-50 hover:cursor-pointer"
-                max={getLocalDateString()}
+                  max={getLocalDateString()}
                 />
               </div>
 
@@ -357,7 +357,8 @@ export default function Home() {
                     setGedung("all");
                     setLantai("all");
                   }}
-                  className="w-full bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-700 border text-slate-900 dark:text-slate-100 py-2 px-4 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition duration-200 ease-in-out focus:outline-none  focus:ring-slate-500 focus:ring-opacity-50 font-normal"
+                  variant="outline"
+                  className="w-full"
                   disabled={loading}
                 >
                   Reset Filters
@@ -425,7 +426,7 @@ export default function Home() {
                                       fill: theme === "dark" ? "#1e293b" : "#f1f5f9",
                                       stroke: theme === "dark" ? "#1e293b" : "#f1f5f9",
                                       strokeWidth: 0,
-                                    }}                               
+                                    }}
                                   />
                                   <Legend />
                                   <Bar dataKey="R" fill="#67d790" name="Phase R" />
@@ -479,30 +480,7 @@ export default function Home() {
                             </CardContent>
                           </Card>
                         </div>
-                        {/* Table Section */}
-                        <Card className="mt-8">
-                          <CardHeader> <CardTitle className=" font-semibold">Hourly Data</CardTitle> </CardHeader>
-                          <CardContent className="rounded-lg overflow-hidden">
-                            <Table>
-                              <TableHeader className="">
-                                <TableRow>
-                                  <TableHead>Hour (UTC+7)</TableHead>
-                                  <TableHead>Energy</TableHead>
-                                  <TableHead>Cost</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {data.hourly_data.slice(0, 10).map((item, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{item.hour}</TableCell>
-                                    <TableCell>{formatNumber(item.energy)} kWh</TableCell>
-                                    <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </CardContent>
-                        </Card>
+
                       </>
 
                     ) : (
@@ -567,69 +545,101 @@ export default function Home() {
         </CardContent>
       </Card>
       {data && (
-                  <motion.div className="" initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}>
-          <Card className="mb-4">
-            <CardHeader className="pt-1">
-              <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                {
-                  comparison[0] > 0 ? (
-                    <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
-                  ) : (
-                    <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
-                  )
-                }
-                Comparison
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div>
-                <p className="font-medium text-xs">Daily Total (Difference)</p>
-                <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
-                <p className="">{formatNumber(comparison[0])} kWh</p>
-                {
-                  comparison[0] > 0 ? (
-                    <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
-                  ) : (
-                    <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
-                  )
-                }
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pt-1">
-              <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-              <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4">
+        <>
+          <motion.div className="col-span-5 lg:col-span-1" initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}>
+            <Card className="mb-4">
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                  {
+                    comparison[0] > 0 ? (
+                      <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
+                    ) : (
+                      <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
+                    )
+                  }
+                  Comparison
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
                 <div>
-                  <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Total</h3>
-                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.total_cost, 0)}</p>
-                  <p className="">{formatNumber(data.today_data.total_daya)} kWh</p>
+                  <p className="font-medium text-xs">Daily Total (Difference)</p>
+                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
+                  <p className="">{formatNumber(comparison[0])} kWh</p>
+                  {
+                    comparison[0] > 0 ? (
+                      <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
+                    ) : (
+                      <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
+                    )
+                  }
                 </div>
-                <div>
-                  <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Hourly Average</h3>
-                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.avg_cost, 0)}</p>
-                  <p className="">{formatNumber(data.today_data.avg_daya)} kWh</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                  <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                  <div>
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Total</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.total_cost, 0)}</p>
+                    <p className="">{formatNumber(data.today_data.total_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Hourly Average</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.avg_cost, 0)}</p>
+                    <p className="">{formatNumber(data.today_data.avg_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
+                    <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
+                    <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
-                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
-                  <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
-                </div>
-                <div>
-                  <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
-                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
-                  <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          {/* Table Section */}
+          <motion.div className="col-span-5 lg:col-span-4" initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}>
+
+
+            <Card className="">
+              <CardHeader> <CardTitle className=" font-semibold">Hourly Data</CardTitle> </CardHeader>
+              <CardContent className="rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader className="">
+                    <TableRow>
+                      <TableHead>Hour (UTC+7)</TableHead>
+                      <TableHead>Energy</TableHead>
+                      <TableHead>Cost</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.hourly_data.slice(0, 10).map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.hour}</TableCell>
+                        <TableCell>{formatNumber(item.energy)} kWh</TableCell>
+                        <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </>
       )}
     </motion.div>
   );

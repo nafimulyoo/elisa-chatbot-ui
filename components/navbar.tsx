@@ -75,8 +75,8 @@ export function Navbar() {
         { href: "/monthly", label: "Monthly", title: "Monthly Usage", icon: Calendar },
         { href: "/heatmap", label: "Heatmap", title: "Heatmap", icon: Flame },
         { href: "/faculty", label: "Faculty", title: "Faculties Consumption", icon: Building2 },
-        { href: "/", label: "Smart Analysis", title: "Smart Analysis", icon: BarChart2 },
-        { href: "/feedback", label: "Feedback", title: "Feedback", icon: MessageSquare },
+        { href: "/analysis", label: "Smart Analysis", title: "Smart Analysis", icon: BarChart2 },
+        // { href: "/feedback", label: "Feedback", title: "Feedback", icon: MessageSquare },
     ];
 
     useEffect(() => {
@@ -93,21 +93,21 @@ export function Navbar() {
     }, []);
 
     return (
-        <div>
+        <div className="w-full">
             {/* Mobile menu button */}
             <div className="md:hidden absolute right-4 top-8 z-20">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 rounded-md text-slate-400 hover:bg-gray-200 focus:outline-none"
+                    className="p-2 rounded-md text-slate-700 dark:text-slate-200 hover:bg-gray-200 focus:outline-none"
                 >
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="flex justify-center pb-4">
+            <div className="flex justify-center pb-4 w-full">
                 <Card className="backdrop-blur-sm hidden md:block">
-                {/* <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm hidden md:block"></Card> */}
+                    {/* <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm hidden md:block"></Card> */}
                     <CardContent className="p-4">
                         <nav className="space-y-2">
                             {navItems.map((item) => {
@@ -160,13 +160,14 @@ export function Navbar() {
                                         className={cn(
                                             "flex items-center px-4 py-3 text-lg font-medium rounded-md transition-colors",
                                             isActive
-                                                ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
-                                                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                                ? "bg-slate-100/70 dark:bg-slate-800/70 text-cyan-600 dark:text-cyan-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/70  hover:text-cyan-600 dark:text-cyan-400"
+                                                : "text-slate-700 hover:text-cyan-600 dark:text-cyan-400 dark:text-slate-200 dark:hover:text-cyan-400  hover:bg-slate-50/50 dark:hover:bg-slate-800/10"
                                         )}
                                     >
                                         <item.icon className="mr-2 h-4 w-4" />
                                         {item.label}
                                     </Link>
+
                                 </li>
                             );
                         })}

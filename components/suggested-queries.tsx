@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card-themed";
 
 export const SuggestedQueries = ({
   handleSuggestionClick,
@@ -55,48 +57,52 @@ export const SuggestedQueries = ({
       exit={{ opacity: 0 }}
       className="h-full overflow-y-auto"
     >
-      <h2 className="text-lg sm:text-lg font-semibold text-foreground mb-4 text-gray-700">
-        Test cases:
-      </h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                No.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Case
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Test Query
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {suggestionQueries.map((suggestion: any, index: any) => (
-              <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {index + 1}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {suggestion[1]}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleSuggestionClick(suggestion[0])}
-                    className="text-left"
-                  >
-                    {suggestion[0]}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Card >
+        <CardHeader>
+          <CardTitle className=" font-semibold">
+            Test cases
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="rounded-lg overflow-hidden overflow-x-auto p-0">
+          <Table className="min-w-full">
+            <TableHeader >
+              <TableRow className="hover:bg-transparent">
+                <TableHead>
+                  No.
+                </TableHead>
+                <TableHead>
+                  Case
+                </TableHead>
+                <TableHead>
+                  Test Query
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="">
+              {suggestionQueries.map((suggestion: any, index: any) => (
+                <TableRow key={index} className="hover:bg-transparent">
+                  <TableCell className="">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell className="">
+                    {suggestion[1]}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSuggestionClick(suggestion[0])}
+                      className="text-left"
+                    >
+                      {suggestion[0]}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };

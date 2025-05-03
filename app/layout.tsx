@@ -31,11 +31,11 @@ export default function RootLayout({
             <Canvas />
             <div className="p-6 relative z-10">
               <Header />
-              <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-12 md:col-span-2 lg:col-span-2">
+              <div className="grid grid-cols-12 gap-8">
+                <div className="col-span-12 mobile:col-span-2 sm:col-span-2">
                   <Navbar />
                 </div>
-                <div className="col-span-12 md:col-span-12 lg:col-span-10">
+                <div className="col-span-12 mobile:col-span-12 sm:col-span-12 md:col-span-10">
                   {children}
                 </div>
               </div>

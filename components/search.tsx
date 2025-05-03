@@ -1,6 +1,10 @@
-import { Search as SearchIcon } from "lucide-react";
+"use client";
+
+import { Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 
 export const Search = ({
   handleSubmit,
@@ -8,13 +12,33 @@ export const Search = ({
   setInputValue,
   submitted,
   handleClear,
-}: {
-  handleSubmit: () => Promise<void>;
-  inputValue: string;
-  setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  submitted: boolean;
-  handleClear: () => void;
-}) => {
+}: any) => {
+  const searchParams = useSearchParams();
+  const initialRender = useRef(true);
+  const submitRequested = useRef(false);
+
+  useEffect(() => {
+    const query = searchParams.get("query");
+    
+    if (initialRender.current && query && !inputValue) {
+      const decodedQuery = decodeURIComponent(query);
+      setInputValue(decodedQuery);
+      submitRequested.current = true;
+    }
+    
+    initialRender.current = false;
+  }, [searchParams, setInputValue, inputValue]);
+
+  useEffect(() => {
+    if (submitRequested.current && inputValue) {
+      submitRequested.current = false;
+      const submit = async () => {
+        await handleSubmit();
+      };
+      submit();
+    }
+  }, [inputValue, handleSubmit]);
+
   return (
     <form
       onSubmit={async (e) => {
@@ -32,7 +56,7 @@ export const Search = ({
             onChange={(e) => setInputValue(e.target.value)}
             className="pr-10 text-base"
           />
-          <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Zap className="absolute h-5 w-5 right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
         </div>
         <div className="flex sm:flex-row items-center justify-center gap-2">
           {submitted ? (
@@ -45,7 +69,7 @@ export const Search = ({
               Clear
             </Button>
           ) : (
-            <Button type="submit" className="w-full sm:w-auto">
+            <Button type="submit" className="w-full sm:w-auto bg-cyan-600 dar:bg-cyan-500 text-white hover:bg-cyan-700 dark:hover:bg-cyan-400">
               Send
             </Button>
           )}

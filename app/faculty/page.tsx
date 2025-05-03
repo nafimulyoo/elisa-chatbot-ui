@@ -157,10 +157,10 @@ export default function FacultyComparison() {
     .sort((a, b) => b.energy - a.energy) || [];
 
   return (
-    <motion.div className="grid grid-cols-1 md:grid-cols-5 gap-4" initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}>
-      <Card className="col-span-4 md:col-span-4 mb-4">
+    <motion.div className="grid grid-cols-5 gap-4" initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}>
+      <Card className="col-span-5 lg:col-span-4">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-800  dark:text-slate-100">
             <Building2 className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Faculty Comparison
@@ -314,94 +314,6 @@ export default function FacultyComparison() {
                           </CardContent>
                         </Card>
 
-                        {/* Table Section */}
-                        <Card>
-                          <CardHeader> <CardTitle className=" font-semibold">Detailed Faculty Data</CardTitle> </CardHeader>
-                          <CardContent className="rounded-lg overflow-hidden">
-                            <Table>
-                              <TableHeader className="">
-                                <TableRow>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("faculty");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Faculty {sortField === "faculty" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("energy");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Energy (kWh) {sortField === "energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("cost");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Cost (IDR) {sortField === "cost" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("area");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Area (m²) {sortField === "area" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("ike");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    IKE {sortField === "ike" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("students");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Students {sortField === "students" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                  <TableHead
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      setSortField("specific_energy");
-                                      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                                    }}
-                                  >
-                                    Specific Energy {sortField === "specific_energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {sortedInfo.map((item, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{item.faculty}</TableCell>
-                                    <TableCell>{item.energy.toFixed(2)}</TableCell>
-                                    <TableCell>{item.cost.toFixed(2)}</TableCell>
-                                    <TableCell>{item.area.toFixed(2)}</TableCell>
-                                    <TableCell>{item.ike.toFixed(2)}</TableCell>
-                                    <TableCell>{item.students}</TableCell>
-                                    <TableCell>{(item.energy / item.students).toFixed(2)}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </CardContent>
-                        </Card>
                       </>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -466,42 +378,138 @@ export default function FacultyComparison() {
       </Card>
       {
         data && (
-          <motion.div className="" initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}>
-            <Card>
-              <CardHeader className="pt-1">
-                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                  <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Monthly Total</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.total?.cost, 0)}</p>
-                    <p>{formatNumber(data.data.total?.total)} kWh</p>
-                  </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Average</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.average?.cost, 0)}</p>
-                    <p>{formatNumber(data.data.average?.average)} kWh</p>
-                  </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-rose-600 dark:text-rose-500">Highest: {data.data.max.fakultas}</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.max.cost, 0)}</p>
-                    <p>{formatNumber(data.data.max.energy)} kWh</p>
-                  </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-green-600 dark:text-green-400">Lowest: {data.data.min.fakultas}</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.min.cost, 0)}</p>
-                    <p>{formatNumber(data.data.min.energy)} kWh</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <>
 
-          </motion.div>
+            <motion.div className="col-span-5 lg:col-span-1" initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}>
+              <Card>
+                <CardHeader className="pt-1">
+                  <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                    <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div>
+                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Monthly Total</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.total?.cost, 0)}</p>
+                      <p>{formatNumber(data.data.total?.total)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Average</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.average?.cost, 0)}</p>
+                      <p>{formatNumber(data.data.average?.average)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-rose-600 dark:text-rose-500">Highest: {data.data.max.fakultas}</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.max.cost, 0)}</p>
+                      <p>{formatNumber(data.data.max.energy)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-green-600 dark:text-green-400">Lowest: {data.data.min.fakultas}</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.data.min.cost, 0)}</p>
+                      <p>{formatNumber(data.data.min.energy)} kWh</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            {/* Table Section */}
+            <motion.div className="col-span-5 lg:col-span-4" initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}>
+
+
+              <Card className="">
+                <CardHeader> <CardTitle className=" font-semibold">Detailed Faculty Data</CardTitle> </CardHeader>
+                <CardContent className="rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader className="">
+                      <TableRow>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("faculty");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Faculty {sortField === "faculty" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("energy");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Energy (kWh) {sortField === "energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("cost");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Cost (IDR) {sortField === "cost" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("area");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Area (m²) {sortField === "area" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("ike");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          IKE {sortField === "ike" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("students");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Students {sortField === "students" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                        <TableHead
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSortField("specific_energy");
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                          }}
+                        >
+                          Specific Energy {sortField === "specific_energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedInfo.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.faculty}</TableCell>
+                          <TableCell>{item.energy.toFixed(2)}</TableCell>
+                          <TableCell>{item.cost.toFixed(2)}</TableCell>
+                          <TableCell>{item.area.toFixed(2)}</TableCell>
+                          <TableCell>{item.ike.toFixed(2)}</TableCell>
+                          <TableCell>{item.students}</TableCell>
+                          <TableCell>{(item.energy / item.students).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </>
         )
       }
     </motion.div>

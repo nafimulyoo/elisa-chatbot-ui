@@ -272,11 +272,11 @@ export default function Home() {
   const topDomain = Math.ceil(maxPower * 1.02)
 
   return (
-    <motion.div className="grid grid-cols-1 md:grid-cols-5 gap-4"
+    <motion.div className="grid grid-cols-5 gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}>
-      <Card className="col-span-4 md:col-span-4 mb-4">
+      <Card className="col-span-5 lg:col-span-4 ">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             <Activity className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Last Hour's Usage
@@ -472,7 +472,6 @@ export default function Home() {
                                       padding: "8px",
                                     }}
                                   />
-
                                   <Area
                                     type="monotone"
                                     dataKey="power"
@@ -538,35 +537,8 @@ export default function Home() {
                           </Card>
                         </div>
 
-                        {/* Table Section */}
-                        <Card className="mt-8">
-                          <CardHeader>
-                            <CardTitle className=" font-semibold">
-                              Power Consumption Data
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-
-                            <div className="rounded-lg overflow-hidden">
-                              <Table>
-                                <TableHeader className="">
-                                  <TableRow>
-                                    <TableHead>Timestamp (UTC+7)</TableHead>
-                                    <TableHead>Power</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {data.chart_data.slice(0, 10).map((item, index) => (
-                                    <TableRow key={index}>
-                                      <TableCell>{formatTimestamp(item.timestamp)}</TableCell>
-                                      <TableCell>{formatNumber(item.power)} kW</TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        
+                        
                       </>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
@@ -635,7 +607,8 @@ export default function Home() {
       </Card>
       {
         data && (
-          <motion.div className="" initial={{ opacity: 0 }}
+          <>
+          <motion.div className="col-span-5 lg:col-span-1" initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}>
             {/* shadow center */}
@@ -674,7 +647,7 @@ export default function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
                   <div>
                     <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Today's Total</h3>
                     <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.total_cost, 0)}</p>
@@ -704,6 +677,42 @@ export default function Home() {
               </CardContent>
             </Card>
           </motion.div>
+          {/* Table Section */}
+          <motion.div className="col-span-5 lg:col-span-4" initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}>
+
+          
+          <Card className="">
+          <CardHeader>
+            <CardTitle className=" font-semibold">
+              Power Consumption Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+
+            <div className="rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader className="">
+                  <TableRow>
+                    <TableHead>Timestamp (UTC+7)</TableHead>
+                    <TableHead>Power</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.chart_data.slice(0, 10).map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{formatTimestamp(item.timestamp)}</TableCell>
+                      <TableCell>{formatNumber(item.power)} kW</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+        </motion.div>
+        </>
         )
       }
 

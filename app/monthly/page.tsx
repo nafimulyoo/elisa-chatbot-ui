@@ -240,10 +240,10 @@ export default function Home() {
   })) || [];
 
   return (
-    <motion.div className="grid grid-cols-1 md:grid-cols-5 gap-4" initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}>
-      <Card className="col-span-4 md:col-span-4 mb-4">
+    <motion.div className="grid grid-cols-5 gap-4" initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}>
+      <Card className="col-span-5 lg:col-span-4">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             <Calendar className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Monthly Usage
@@ -357,7 +357,8 @@ export default function Home() {
                     setGedung("all");
                     setLantai("all");
                   }}
-                  className="w-full bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-700 border text-slate-900 dark:text-slate-100 py-2 px-4 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition duration-200 ease-in-out focus:outline-none  focus:ring-slate-500 focus:ring-opacity-50 font-normal"
+                  variant="outline"
+                  className="w-full"
                   disabled={loading}
                 >
                   Reset Filters
@@ -478,36 +479,7 @@ export default function Home() {
                             </CardContent>
                           </Card>
                         </div>
-                        {/* Table Section */}
-                        <Card className="mt-8">
-                          <CardHeader> <CardTitle className=" font-semibold">Daily Data</CardTitle> </CardHeader>
-                          <CardContent className="rounded-lg overflow-hidden">
-                            <Table>
-                              <TableHeader className="">
-                                <TableRow>
-                                  <TableHead>Date</TableHead>
-                                  <TableHead>Energy</TableHead>
-                                  <TableHead>Cost</TableHead>
-                                  <TableHead>Phase 1</TableHead>
-                                  <TableHead>Phase 2</TableHead>
-                                  <TableHead>Phase 3</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {data.daily_data.map((item, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{formatDate(item.timestamp)}</TableCell>
-                                    <TableCell>{formatNumber(item.energy)} kWh</TableCell>
-                                    <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
-                                    <TableCell>{formatNumber(item["phase 1"])} kWh</TableCell>
-                                    <TableCell>{formatNumber(item["phase 2"])} kWh</TableCell>
-                                    <TableCell>{formatNumber(item["phase 3"])} kWh</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </CardContent>
-                        </Card>
+
                       </>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -572,70 +544,108 @@ export default function Home() {
       </Card>
       {
         data && (
-          <motion.div className="" initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}>
-            <Card className="mb-4 w-full">
-              <CardHeader className="pt-1">
-                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                  {
-                    comparison[0] > 0 ? (
-                      <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
-                    ) : (
-                      <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
-                    )
-                  }
-                  Comparison
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div>
-                  <p className="font-medium text-xs">Monthly Usage (Difference)</p>
-                  <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
-                  <p className="">{formatNumber(comparison[0])} kWh</p>
-                  {
-                    comparison[0] > 0 ? (
-                      <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
-                    ) : (
-                      <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
-                    )
-                  }
-                </div>
-              </CardContent>
-            </Card>
+          <>
+            <motion.div className="col-span-5 lg:col-span-1" initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}>
+              <Card className="mb-4 w-full">
+                <CardHeader className="pt-1">
+                  <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                    {
+                      comparison[0] > 0 ? (
+                        <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
+                      ) : (
+                        <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
+                      )
+                    }
+                    Comparison
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div>
+                    <p className="font-medium text-xs">Daily Average (Difference)</p>
+                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
+                    <p className="">{formatNumber(comparison[0])} kWh</p>
+                    {
+                      comparison[0] > 0 ? (
+                        <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month's average</p>
+                      ) : (
+                        <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month's average</p>
+                      )
+                    }
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pt-1">
-                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Monthly Total</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.total_cost, 0)}</p>
-                    <p className="">{formatNumber(data.month_data.total_daya)} kWh</p>
+              <Card>
+                <CardHeader className="pt-1">
+                  <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                    <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div>
+                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Monthly Total</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.total_cost, 0)}</p>
+                      <p className="">{formatNumber(data.month_data.total_daya)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Average</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.avg_cost, 0)}</p>
+                      <p className="">{formatNumber(data.month_data.avg_daya)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
+                      <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
+                    </div>
+                    <div>
+                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
+                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
+                      <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Daily Average</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.month_data.avg_cost, 0)}</p>
-                    <p className="">{formatNumber(data.month_data.avg_daya)} kWh</p>
-                  </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Total</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
-                    <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
-                  </div>
-                  <div>
-                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month's Daily Average</h3>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
-                    <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            {/* Table Section */}
+            <motion.div className="col-span-5 lg:col-span-4" initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}>
+
+
+              <Card className="">
+                <CardHeader> <CardTitle className=" font-semibold">Daily Data</CardTitle> </CardHeader>
+                <CardContent className="rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader className="">
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Energy</TableHead>
+                        <TableHead>Cost</TableHead>
+                        <TableHead>Phase 1</TableHead>
+                        <TableHead>Phase 2</TableHead>
+                        <TableHead>Phase 3</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.daily_data.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{formatDate(item.timestamp)}</TableCell>
+                          <TableCell>{formatNumber(item.energy)} kWh</TableCell>
+                          <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
+                          <TableCell>{formatNumber(item["phase 1"])} kWh</TableCell>
+                          <TableCell>{formatNumber(item["phase 2"])} kWh</TableCell>
+                          <TableCell>{formatNumber(item["phase 3"])} kWh</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </>
         )
       }
     </motion.div>
