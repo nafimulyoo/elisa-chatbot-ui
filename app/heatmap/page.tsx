@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSearchParams } from "next/navigation";
 
 interface HeatmapData {
   dates: {
@@ -30,35 +31,51 @@ interface Option {
 
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const formatDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
   const [data, setData] = useState<HeatmapData | null>(null);
   const [loading, setLoading] = useState(false);
+
+
+  const searchParams = useSearchParams();
+
   // Filter states
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>(() => {
-    const today = new Date();
-    const end = new Date(today);
-    const start = new Date(today);
-    start.setDate(today.getDate() - 6); // 6 days before today
+  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
+  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
 
-    // Format as 'YYYY-MM-DD' (local time)
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
+  // Filter states
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>(
+    () => {
+      const getInitialDateRange = () => {
+        const searchStart = searchParams.get("start");
+        const searchEnd = searchParams.get("end");
 
-    return {
-      start: formatDate(start),
-      end: formatDate(end),
-    };
-  });
+        if (searchStart && searchEnd) {
+          return { start: searchStart, end: searchEnd };
+        } else {
+          const today = new Date();
+          const end = new Date(today);
+          const start = new Date(today);
+          start.setDate(today.getDate() - 6); // 6 days before today
 
-  const [fakultas, setFakultas] = useState("all");
-  const [gedung, setGedung] = useState("all");
-  const [lantai, setLantai] = useState("all");
+          return {
+            start: formatDate(start),
+            end: formatDate(end),
+          };
+        }
+      };
+
+      return getInitialDateRange();
+    }
+  );
 
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
@@ -66,7 +83,27 @@ export default function Home() {
   const [lantaiOptions, setLantaiOptions] = useState<Option[]>([]);
 
   // Analysis
+  const [model, setModel] = useState("gemini");
   const [analysis, setAnalysis] = useState("");
+
+  const fetchAnalysis = async () => {
+    try {
+      const fakultas_data = fakultas === "all" ? "" : fakultas;
+      const gedung_data = gedung === "all" ? "" : gedung;
+      const lantai_data = lantai === "all" ? "" : lantai;
+
+      const start_date_input = dateRange.start;
+      const end_date_input = dateRange.end;
+
+      const response = await fetch(`${ANALYSIS_URL}/api/analysis/heatmap?start=${start_date_input}&end=${end_date_input}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}&model=${model}`);
+      if (!response.ok) throw new Error('Failed to fetch analysis');
+      const analysis_result = await response.json();
+      setAnalysis(analysis_result.analysis);
+      console.log(analysis_result)
+    } catch (err) {
+      console.error("Error fetching analysis:", err);
+    }
+  };
 
   const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -97,6 +134,8 @@ export default function Home() {
   // Find min and max values for color scaling
   const minValue = Math.min(...(data?.heatmap.map(item => item.value) || [0]));
   const maxValue = Math.max(...(data?.heatmap.map(item => item.value) || [1]));
+
+
 
   // Fetch initial fakultas options
   useEffect(() => {
@@ -192,38 +231,21 @@ export default function Home() {
       }
     };
 
-    const fetchAnalysis = async () => {
-      try {
-        const fakultas_data = fakultas === "all" ? "" : fakultas;
-        const gedung_data = gedung === "all" ? "" : gedung;
-        const lantai_data = lantai === "all" ? "" : lantai;
 
-        const start_date_input = dateRange.start;
-        const end_date_input = dateRange.end;
-
-        const response = await fetch(`${ANALYSIS_URL}/api/analysis/heatmap?start=${start_date_input}&end=${end_date_input}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`);
-        if (!response.ok) throw new Error('Failed to fetch analysis');
-        const analysis_result = await response.json();
-        setAnalysis(analysis_result.analysis);
-        console.log(analysis_result)
-      } catch (err) {
-        console.error("Error fetching analysis:", err);
-      }
-    };
-    const fetchAll = async () => {
-      fetchData();
-      fetchAnalysis();
-    }
-
-    fetchAll();
+    fetchData();
 
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 15 * 60 * 1000);
+    intervalId = setInterval(fetchData, 15 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [dateRange, fakultas, gedung, lantai]);
+
+  useEffect(() => {
+    setAnalysis("")
+    fetchAnalysis()
+  }, [data, dateRange, fakultas, gedung, lantai, model])
 
   // Handle date range change (always adjust to full week)
   const handleDateChange = (newDate: string) => {
@@ -438,7 +460,7 @@ export default function Home() {
 
                                 return {
                                   background: `rgb(${color.join(',')})`,
-                                 
+
                                   transition: "background-color 0.2s ease", // Optional for hover effects
                                   border: "0px",
                                   margin: "1px"
@@ -486,8 +508,25 @@ export default function Home() {
                           </CardContent>
                         </Card>
                         <Card className="rounded-lg">
-                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                          <CardContent className="overflow-y-auto">
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
+                            <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                              <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </CardHeader>
+                          <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -518,7 +557,18 @@ export default function Home() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis}
+                                          {analysis.split("\n").map((line, index) => (
+                                            <p key={index} className="">
+                                              {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                if (part.startsWith("**") && part.endsWith("**")) {
+                                                  return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                  return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                }
+                                                return <span key={i}>{part}</span>;
+                                              })}
+                                            </p>
+                                          ))}
                                         </p>
                                       </motion.div>
                                     )
@@ -531,17 +581,34 @@ export default function Home() {
 
                       </>
                     ) : (
-                      <div className="grid g rid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Chart Section - Clustered Column Chart */}
-                        <div className="mb-8 rounded-lg shadow-md">
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                        <Card className="">
                           <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
                           <CardContent className="">
                             Failed to fetch data from ELISA API. Please check analysis for more information.
                           </CardContent>
-                        </div>
-                        <div className="mb-8 rounded-lg shadow-md">
-                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                          <CardContent className="">
+                        </Card>
+                        <Card>
+
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
+                            <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                              <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </CardHeader>
+                          <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -572,7 +639,18 @@ export default function Home() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis}
+                                          {analysis.split("\n").map((line, index) => (
+                                            <p key={index} className="">
+                                              {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                if (part.startsWith("**") && part.endsWith("**")) {
+                                                  return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                  return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                }
+                                                return <span key={i}>{part}</span>;
+                                              })}
+                                            </p>
+                                          ))}
                                         </p>
                                       </motion.div>
                                     )
@@ -581,7 +659,7 @@ export default function Home() {
                               )
                             }
                           </CardContent>
-                        </div>
+                        </Card>
                       </div>
                     )
 

@@ -24,6 +24,7 @@ export default function SmartAnalysis() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
   const [notebook, setNotebook]: any = useState({});
+  const [model, setModel] = useState("gemini-2.5");
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const { theme, setTheme } = useTheme();
 
@@ -58,7 +59,7 @@ export default function SmartAnalysis() {
 
     try {
       setNotebook({});
-      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}`);
+      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}&model=${model}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -149,6 +150,8 @@ export default function SmartAnalysis() {
             inputValue={inputValue}
             setInputValue={setInputValue}
             submitted={submitted}
+            model={model}
+            setModel={setModel}
           />
           <div
             id="main-container"

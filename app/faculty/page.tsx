@@ -22,10 +22,12 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 interface FacultyComparisonData {
   value: {
@@ -80,14 +82,29 @@ export default function FacultyComparison() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter state - default to current month
-  const [month, setMonth] = useState(getLocalYearMonth());
+  const searchParams = useSearchParams();
+
+  const [month, setMonth] = useState(searchParams.get('date') || getLocalYearMonth());
 
   // Sort state
   const [sortField, setSortField] = useState<keyof FacultyComparisonData['info'][0]>("energy");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Analysis
+  const [model, setModel] = useState("gemini");
   const [analysis, setAnalysis] = useState("");
+
+  const fetchAnalysis = async () => {
+    try {
+      const response = await fetch(`${ANALYSIS_URL}/api/analysis/faculty?date=${month}&model=${model}`);
+      if (!response.ok) throw new Error('Failed to fetch analysis');
+      const analysis_result = await response.json();
+      setAnalysis(analysis_result.analysis);
+      console.log(analysis_result)
+    } catch (err) {
+      console.error("Error fetching analysis:", err);
+    }
+  };
 
 
   // fetch analysis using useEffect
@@ -116,33 +133,23 @@ export default function FacultyComparison() {
       }
     };
 
-    const fetchAnalysis = async () => {
-      try {
-        const response = await fetch(`${ANALYSIS_URL}/api/analysis/faculty?date=${month}`);
-        if (!response.ok) throw new Error('Failed to fetch analysis');
-        const analysis_result = await response.json();
-        setAnalysis(analysis_result.analysis);
-        console.log(analysis_result)
-      } catch (err) {
-        console.error("Error fetching analysis:", err);
-      }
-    };
+    
 
-    const fetchAll = async () => {
-      fetchData();
-      fetchAnalysis();
-    }
-
-    fetchAll();
+    const fetchAll = async () =>     fetchData();
 
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 60 * 60 * 1000);
+    intervalId = setInterval(fetchData, 60 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
 
   }, [month, ANALYSIS_URL]);
+
+  useEffect(() => {
+    setAnalysis("")
+    fetchAnalysis()
+  }, [data, month, model])
 
   // Sort the info data
   const sortedInfo = data?.info ? [...data.info].sort((a, b) => {
@@ -167,7 +174,6 @@ export default function FacultyComparison() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-
           <div className="">
             {/* Filter Section */}
             <div className="flex items-center gap-4 mb-6">
@@ -271,8 +277,25 @@ export default function FacultyComparison() {
                         </Card>
 
                         <Card className="mb-8">
-                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                          <CardContent className="">
+                                                      <CardHeader className="flex justify-between"> 
+                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
+                              <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>  
+                            </CardHeader>
+                            <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -303,7 +326,18 @@ export default function FacultyComparison() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis}
+                                          {analysis.split("\n").map((line, index) => (
+                                                <p key={index} className="">
+                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                    if (part.startsWith("**") && part.endsWith("**")) {
+                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                    }
+                                                    return <span key={i}>{part}</span>;
+                                                  })}
+                                                </p>
+                                              ))}
                                         </p>
                                       </motion.div>
                                     )
@@ -316,17 +350,34 @@ export default function FacultyComparison() {
 
                       </>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                         {/* Chart Section - Clustered Column Chart */}
-                        <Card className="mb-8 rounded-lg shadow-md">
+                        <Card>
                           <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
                           <CardContent className="">
                             Failed to fetch data from ELISA API. Please check analysis for more information.
                           </CardContent>
                         </Card>
-                        <Card className="mb-8 rounded-lg shadow-md">
-                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                          <CardContent className="">
+                        <Card>
+                                                      <CardHeader className="flex justify-between"> 
+                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
+                              <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>  
+                            </CardHeader>
+                            <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -357,7 +408,18 @@ export default function FacultyComparison() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis}
+                                          {analysis.split("\n").map((line, index) => (
+                                                <p key={index} className="">
+                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                    if (part.startsWith("**") && part.endsWith("**")) {
+                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                    }
+                                                    return <span key={i}>{part}</span>;
+                                                  })}
+                                                </p>
+                                              ))}
                                         </p>
                                       </motion.div>
                                     )

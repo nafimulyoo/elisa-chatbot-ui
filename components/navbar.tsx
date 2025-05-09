@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { BrainCircuit, Menu, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card-themed";
 import { Activity, Calendar, Flame, Users, BarChart2, MessageSquare, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ export function Navbar() {
         { href: "/monthly", label: "Monthly", title: "Monthly Usage", icon: Calendar },
         { href: "/heatmap", label: "Heatmap", title: "Heatmap", icon: Flame },
         { href: "/faculty", label: "Faculty", title: "Faculties Consumption", icon: Building2 },
-        { href: "/analysis", label: "Smart Analysis", title: "Smart Analysis", icon: BarChart2 },
+        { href: "/analysis", label: "Smart Analysis", title: "Smart Analysis", icon: BrainCircuit },
         // { href: "/feedback", label: "Feedback", title: "Feedback", icon: MessageSquare },
     ];
 

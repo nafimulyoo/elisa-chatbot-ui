@@ -20,6 +20,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -27,6 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
   chart_data: {
@@ -84,11 +87,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   // Filter states
-  const [month, setMonth] = useState(getLocalYearMonth());
+  const searchParams = useSearchParams();
+  const [month, setMonth] = useState(searchParams.get('date') ||getLocalYearMonth());
   // const [month, setMonth] = useState("2019-01");
-  const [fakultas, setFakultas] = useState("all");
-  const [gedung, setGedung] = useState("all");
-  const [lantai, setLantai] = useState("all");
+  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
+  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
 
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
@@ -96,6 +100,7 @@ export default function Home() {
   const [lantaiOptions, setLantaiOptions] = useState<Option[]>([]);
 
   // Analysis
+  const [model, setModel] = useState("gemini");
   const [analysis, setAnalysis] = useState("");
 
 
@@ -165,6 +170,23 @@ export default function Home() {
     fetchLantai();
   }, [gedung, fakultas]);
 
+  const fetchAnalysis = async () => {
+    try {
+      console.log(model)
+      const fakultas_data = fakultas === "all" ? "" : fakultas;
+      const gedung_data = gedung === "all" ? "" : gedung;
+      const lantai_data = lantai === "all" ? "" : lantai;
+
+      const response = await fetch(`${ANALYSIS_URL}/api/analysis/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}&model=${model}`);
+      if (!response.ok) throw new Error('Failed to fetch analysis');
+      const analysis_result = await response.json();
+      setAnalysis(analysis_result.analysis);
+      console.log(analysis_result)
+    } catch (err) {
+      console.error("Error fetching analysis:", err);
+    }
+  };
+
   // Fetch data when filters change
   useEffect(() => {
     setData(null);
@@ -199,37 +221,23 @@ export default function Home() {
       }
     };
 
-    const fetchAnalysis = async () => {
-      try {
-        const fakultas_data = fakultas === "all" ? "" : fakultas;
-        const gedung_data = gedung === "all" ? "" : gedung;
-        const lantai_data = lantai === "all" ? "" : lantai;
 
-        const response = await fetch(`${ANALYSIS_URL}/api/analysis/monthly?date=${month}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`);
-        if (!response.ok) throw new Error('Failed to fetch analysis');
-        const analysis_result = await response.json();
-        setAnalysis(analysis_result.analysis);
-        console.log(analysis_result)
-      } catch (err) {
-        console.error("Error fetching analysis:", err);
-      }
-    };
+    fetchData();
 
-    const fetchAll = async () => {
-      fetchData();
-      fetchAnalysis();
-    }
-
-    fetchAll();
 
     let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchAll, 60 * 60 * 1000);
+    intervalId = setInterval(fetchData, 60 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
 
   }, [month, fakultas, gedung, lantai]);
+
+  useEffect(() => {
+    setAnalysis("")
+    fetchAnalysis()
+  }, [data, month, fakultas, gedung, lantai, model])
 
   // Prepare chart data for clustered column chart
   const chartData = data?.chart_data.map(item => ({
@@ -402,7 +410,7 @@ export default function Home() {
                             <CardHeader> <CardTitle className=" font-semibold">Energy Consumption by Phase</CardTitle> </CardHeader>
                             <CardContent className="h-80">
                               <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
+                                {/* <BarChart
                                   data={chartData}
                                   margin={{
                                     top: 20,
@@ -431,13 +439,61 @@ export default function Home() {
                                   <Bar dataKey="R" fill="#67d790" name="Phase R" />
                                   <Bar dataKey="S" fill="#f8ba52" name="Phase S" />
                                   <Bar dataKey="T" fill="#f37474" name="Phase T" />
-                                </BarChart>
+                                </BarChart> */}
+
+                                <LineChart
+                                  data={chartData}
+                                  margin={{
+                                    top: 20,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 5,
+                                  }}
+                                >
+
+                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="time" />
+                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                                      border: "none",
+                                      borderRadius: "8px",
+                                      padding: "8px"
+                                    }}
+                                    cursor={{
+                                      fill: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                                      stroke: theme === "dark" ? "#1e293b" : "#f1f5f9",
+                                      strokeWidth: 0,
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Line dataKey="R" stroke="#67d790" name="Phase R" strokeWidth={2} dot={false} />
+                                  <Line dataKey="S" stroke="#f8ba52" name="Phase S" strokeWidth={2} dot={false} />
+                                  <Line dataKey="T" stroke="#f37474" name="Phase T" strokeWidth={2} dot={false} />
+                                </LineChart>
                               </ResponsiveContainer>
                             </CardContent>
                           </Card>
                           <Card>
-                            <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
-                            <CardContent className="">
+                            <CardHeader className="flex justify-between"> 
+                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
+                              <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>  
+                            </CardHeader>
+                            <CardContent className="text-slate-900 dark:text-slate-100">
                               {
                                 !analysis ? (
                                   <motion.div
@@ -468,7 +524,18 @@ export default function Home() {
                                           className="h-full"
                                         >
                                           <p className="">
-                                            {analysis}
+                                            {analysis.split("\n").map((line, index) => (
+                                                <p key={index} className="">
+                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                    if (part.startsWith("**") && part.endsWith("**")) {
+                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                    }
+                                                    return <span key={i}>{part}</span>;
+                                                  })}
+                                                </p>
+                                              ))}
                                           </p>
                                         </motion.div>
                                       )
@@ -482,16 +549,33 @@ export default function Home() {
 
                       </>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                         {/* Chart Section - Clustered Column Chart */}
                         <Card>
                           <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle> </CardHeader>
-                          <div className="">
+                          <CardContent className="">
                             Failed to fetch data from ELISA API. Please check analysis for more information.
-                          </div>
+                          </CardContent>
                         </Card>
                         <Card>
-                          <CardHeader> <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> </CardHeader>
+                          <CardHeader className="flex justify-between"> 
+                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
+                              <Select
+                              value={model}
+                              onValueChange={((value) => {
+                                setModel(value);
+                              })}
+                            >
+                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                <SelectValue placeholder="Select Model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                              </SelectContent>
+                            </Select>  
+                            </CardHeader>
                           <CardContent className="">
                             {
                               !analysis ? (
@@ -523,7 +607,18 @@ export default function Home() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis}
+                                          {analysis.split("\n").map((line, index) => (
+                                                <p key={index} className="">
+                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                    if (part.startsWith("**") && part.endsWith("**")) {
+                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                    }
+                                                    return <span key={i}>{part}</span>;
+                                                  })}
+                                                </p>
+                                              ))}
                                         </p>
                                       </motion.div>
                                     )

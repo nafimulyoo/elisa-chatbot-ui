@@ -10,23 +10,27 @@ export const SuggestedQueries = ({
 }) => {
   var suggestionQueries: any = [];
   suggestionQueries = [
-    ["What is ELISA?", "Basic Knowledge"],
+    ["Apa itu ELISA?", "Basic Knowledge"],
     ["Bagaimana cara ELISA mengidentifikasi pemborosan energi di ITB?", "Basic Knowledge"],
-    ["What is the weather like today?", "Unrelevant"],
-    ["What is your favorite color?", "Unrelevant"],
-    ["Plot ITB Kampus Jakarta usage last month", "Data Not Available"],
-    ["What is the usage trend of Fakultas Kedokteran?", "Data Not Available"],
-    ["What is the usage trend of ITB since last year?", "Basic Analysis"],
-    ["Compare SF and FMIPA monthly usage last semester", "Basic Analysis"],
-    ["Gedung Labtek X highest, lowest, and anomalies last two weeks ", "Basic Analysis"],
-    ["Top 3 faculty usage in the last 3 months", "Basic Analysis"],
-    ["Labtek VI and FTI peak hours usage in the last week", "Basic Analysis"],
-    ["Peak hours usage of Labtek VI and FTI last week", "Basic Analysis"],
-    ["Average daily usage of Labtek VI on the 3rd floor", "Basic Analysis"],
-    ["Predict Labtek VI, Labtek X, and FTI peak hours next week", "Advanced Analysis"],
-    ["Forecast pemakaian energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
-  ]
-  
+    ["Bagaimana cuaca hari ini?", "Unrelevant"],
+    ["Apa warna favoritmu?", "Unrelevant"],
+    ["Plot penggunaan ITB Kampus Jakarta bulan lalu", "Data Not Available"],
+    ["Bagaimana tren penggunaan Fakultas Kedokteran?", "Data Not Available"],
+    ["Bagaimana tren penggunaan ITB sejak tahun lalu?", "Basic Analysis"],
+    ["Bandingkan penggunaan bulanan SF dan FMIPA semester lalu", "Basic Analysis"],
+    ["Berapa pemakaian tertinggi, terendah, dan anomali di Labtek X pada dua minggu terakhir?", "Basic Analysis"],
+    ["3 fakultas teratas yang paling banyak menggunakan energi dalam 3 bulan terakhir", "Basic Analysis"],
+    ["Jam puncak penggunaan Labtek VI dan FTI seminggu terakhir", "Basic Analysis"],
+    ["Jam terendah penggunaan Labtek X dan FITB bulan lalu", "Basic Analysis"],
+    ["Rata-rata penggunaan harian Lbatek VI di lantai 3", "Basic Analysis"],
+    ["Perkiraan penggunaan energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
+    ["Prediksi jam puncak Labtek VI, Labtek X, dan FTI minggu depan", "Advanced Analysis"],
+    ["Prediksi fakultas mana yang paling boros di jam 12 siang besok", "Advanced Analysis"],
+    ["Prediksi jam yang paling hemat energi listrik di ITB bulan depan", "Advanced Analysis"],
+    ["Perkirakan total konsumsi energi ITB untuk kuartal berikutnya, dengan mempertimbangkan data historis dan variasi musiman.", "Advanced Analysis"],
+    ["Prediksi gedung yang paling hemat energi listrik di ITB besok", "Advanced Analysis"],
+    ["Prediksi total pemakaian energi listrik di ITB pada Oktober 2025", "Advanced Analysis"],
+  ];
   return (
     <motion.div
       key="suggestions"
