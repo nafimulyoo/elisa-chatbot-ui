@@ -7,7 +7,7 @@ export function Footer() {
       <div className="z-20 w-full bg-background/95 shadow-top backdrop-blur supports-[backdrop-filter]:bg-background">
         <div className="mx-4 md:mx-8 flex h-14 items-center text-center justify-center">
         <p className="text-xs md:text-sm leading-loose text-muted-foreground text-left">
-            This work was created as part of Nafi Mulyo Kusumo's bachelor's thesis in Engineering Physics at ITB. Source code is available on{" "}
+            This work was created as part of Nafi Mulyo Kusumo{"'"}s bachelor{"'"}s thesis in Engineering Physics at ITB. Source code is available on{" "}
           <Link
             href="https://github.com/nafimulyoo/elisa-smart-analysis"
             target="_blank"
