@@ -8,6 +8,7 @@ import { Navbar } from "@/components/navbar";
 import { Canvas } from "@/components/canvas";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card-themed";
+import { Footer } from "@/components/footer";
 
 export const metadata = {
   title: "ElisaAI",
@@ -39,6 +40,7 @@ export default function RootLayout({
               </div>
             </div>
           </div>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
