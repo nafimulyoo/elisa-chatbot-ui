@@ -10,9 +10,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card-themed";
 
 export const metadata = {
-  title: "Elisa Smart Analysis Q&A",
-  description:
-    "Chat with a Postgres database using natural language powered by the AI SDK by Vercel.",
+  title: "ElisaAI",
 };
 
 
