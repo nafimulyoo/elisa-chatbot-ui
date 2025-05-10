@@ -276,7 +276,13 @@ export default function Home() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [date, fakultas, gedung, lantai, model]);
+  }, [date, fakultas, gedung, lantai]);
+
+
+  useEffect(() => {
+    setAnalysis("");
+    fetchAnalysis();
+  }, [model, data, date, fakultas, gedung, lantai]);
 
   const chartData =
     data?.chart_data.map((item) => ({
