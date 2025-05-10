@@ -29,7 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
   chart_data: {
@@ -87,12 +87,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   // Filter states
-  const searchParams = useSearchParams();
-  const [month, setMonth] = useState(searchParams.get('date') ||getLocalYearMonth());
-  // const [month, setMonth] = useState("2019-01");
-  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
-  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
-  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+  // const searchParams = useSearchParams();
+  // const [month, setMonth] = useState(searchParams.get('date') ||getLocalYearMonth());
+  // const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
+  // const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  // const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+
+  const [month, setMonth] = useState(getLocalYearMonth());
+  const [fakultas, setFakultas] = useState("all");
+  const [gedung, setGedung] = useState("all");
+  const [lantai, setLantai] = useState("all");
 
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
@@ -451,7 +455,7 @@ export default function Home() {
                                   }}
                                 >
 
-                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="time" />
+                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="date" />
                                   <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
                                   <Tooltip
                                     contentStyle={{

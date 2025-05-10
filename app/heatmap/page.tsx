@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 interface HeatmapData {
   dates: {
@@ -44,23 +44,26 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
 
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
   // Filter states
-  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
-  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
-  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+  // const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
+  // const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  // const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+  const [fakultas, setFakultas] = useState("all");
+  const [gedung, setGedung] = useState("all");
+  const [lantai, setLantai] = useState("all");
 
   // Filter states
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>(
     () => {
       const getInitialDateRange = () => {
-        const searchStart = searchParams.get("start");
-        const searchEnd = searchParams.get("end");
+        // const searchStart = searchParams.get("start");
+        // const searchEnd = searchParams.get("end");
 
-        if (searchStart && searchEnd) {
-          return { start: searchStart, end: searchEnd };
-        } else {
+        // if (searchStart && searchEnd) {
+        //   return { start: searchStart, end: searchEnd };
+        // } else {
           const today = new Date();
           const end = new Date(today);
           const start = new Date(today);
@@ -70,7 +73,7 @@ export default function Home() {
             start: formatDate(start),
             end: formatDate(end),
           };
-        }
+        // }
       };
 
       return getInitialDateRange();
@@ -251,8 +254,7 @@ export default function Home() {
   const handleDateChange = (newDate: string) => {
     const date = new Date(newDate);
     const start = new Date(date);
-    start.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
-
+   
     const end = new Date(start);
     end.setDate(start.getDate() + 6); // End of week (Saturday)
 
@@ -441,7 +443,7 @@ export default function Home() {
                               cellStyle={(_x, _y, ratio) => {
                                 // Determine color based on clustered thresholds
                                 let color;
-                                if (ratio == 0) {
+                                if (ratio == null) {
                                   if (theme === "dark") {
                                     color = [15, 23, 42]
                                   }

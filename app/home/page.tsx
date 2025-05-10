@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   TableHeader,
   TableRow,
@@ -10,7 +10,17 @@ import {
   Table,
 } from "@/components/ui/table";
 import { motion } from "framer-motion";
-import { Activity, Car, Loader2, FileChartColumnIncreasing, TrendingUp, ArrowUpRight, MoveUpRight, ArrowUpDown, ArrowDownRight } from "lucide-react";
+import {
+  Activity,
+  Car,
+  Loader2,
+  FileChartColumnIncreasing,
+  TrendingUp,
+  ArrowUpRight,
+  MoveUpRight,
+  ArrowUpDown,
+  ArrowDownRight,
+} from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -29,11 +39,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card-themed";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
   chart_data: {
@@ -66,19 +81,17 @@ const formatTimestamp = (timestamp: string) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-
-const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL
+const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getLocalDateString = () => {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
 export default function Home() {
-
   const { theme, setTheme } = useTheme();
 
   const [data, setData] = useState<ElisaData | null>(null);
@@ -86,15 +99,21 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter states
+  // const searchParams = useSearchParams();
 
   // Filter states
-  const searchParams = useSearchParams();
+  // const [date, setDate] = useState(searchParams.get('date') ||
+  // getLocalDateString());
+  // const [fakultas, setFakultas] = useState(searchParams.get('faculty') ||
+  // "all");
+  // const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  // const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
 
-  // Filter states
-  const [date, setDate] = useState(searchParams.get('date') || getLocalDateString());
-  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
-  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
-  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+  const [date, setDate] = useState(getLocalDateString());
+  const [fakultas, setFakultas] = useState("all");
+  const [gedung, setGedung] = useState("all");
+  const [lantai, setLantai] = useState("all");
 
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
@@ -105,22 +124,23 @@ export default function Home() {
   const [model, setModel] = useState("gemini");
   const [analysis, setAnalysis] = useState("");
 
-
+  // Ref to store the previous minute
+  const prevMinute = useRef(new Date().getMinutes());
 
   // Fetch initial fakultas options
-
   useEffect(() => {
     const fetchFakultas = async () => {
       try {
         const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error("Failed to fetch fakultas");
         var data = await response.json();
-        data.fakultas = data.fakultas.filter((fakultas: Option) => fakultas.value !== "-");
+        data.fakultas = data.fakultas.filter(
+          (fakultas: Option) => fakultas.value !== "-",
+        );
         setFakultasOptions(data.fakultas || []);
       } catch (err) {
         console.error("Error fetching fakultas:", err);
       }
-
     };
     fetchFakultas();
   }, []);
@@ -131,13 +151,16 @@ export default function Home() {
       try {
         var response;
         if (fakultas === "all") {
-          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=-`);
-        }
-        else {
-          response = await fetch(`${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`);
+          response = await fetch(
+            `${ANALYSIS_URL}/api/get-gedung?fakultas=-`,
+          );
+        } else {
+          response = await fetch(
+            `${ANALYSIS_URL}/api/get-gedung?fakultas=${fakultas}`,
+          );
         }
 
-        if (!response.ok) throw new Error('Failed to fetch gedung');
+        if (!response.ok) throw new Error("Failed to fetch gedung");
         const data = await response.json();
         setGedungOptions(data.gedung || []);
         setGedung("all");
@@ -150,48 +173,81 @@ export default function Home() {
   }, [fakultas]);
 
   // Fetch lantai options when gedung changes
-  useEffect(() => {
-    if (gedung === "all") {
-      setLantai("all");
-      setLantaiOptions([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (gedung === "all") {
+  //     setLantai("all");
+  //     setLantaiOptions([]);
+  //     return;
+  //   }
 
-    const fetchLantai = async () => {
-      try {
-        const response = await fetch(
-          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
-        );
-        if (!response.ok) throw new Error('Failed to fetch lantai');
-        var data = await response.json();
-        data.lantai = data.lantai.filter((lantai: Option) => lantai.value !== "Total");
-        setLantaiOptions(data.lantai || []);
-        setLantai("all");
-      } catch (err) {
-        console.error("Error fetching lantai:", err);
-      }
-    };
-    fetchLantai();
-  }, [gedung, fakultas]);
+  //   const fetchLantai = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+  //       );
+  //       if (!response.ok) throw new Error('Failed to fetch lantai');
+  //       var data = await response.json();
+  //       data.lantai = data.lantai.filter((lantai: Option) =>
+  // lantai.value !== "Total");
+  //       setLantaiOptions(data.lantai || []);
+  //       setLantai("all");
+  //     } catch (err) {
+  //       console.error("Error fetching lantai:", err);
+  //     }
+  //   };
+  //   fetchLantai();
+  // }, [gedung, fakultas]);
 
   const fetchAnalysis = async () => {
-      setAnalysis("");
-      try {
-        const fakultas_data = fakultas === "all" ? "" : fakultas;
-        const gedung_data = gedung === "all" ? "" : gedung;
-        const lantai_data = lantai === "all" ? "" : lantai;
+    setAnalysis("");
+    try {
+      const fakultas_data = fakultas === "all" ? "" : fakultas;
+      const gedung_data = gedung === "all" ? "" : gedung;
+      const lantai_data = lantai === "all" ? "" : lantai;
 
-        console.log("Getting analysis: " + model) 
-        const response = await fetch(`${ANALYSIS_URL}/api/analysis/now?faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}&model=${model}`);
-      
-        if (!response.ok) throw new Error(`Failed to fetch data: ${response.status}`);
-        const analysis_result = await response.json();
-        setAnalysis(analysis_result.analysis);
-        console.log(analysis_result);
-      } catch (err) {
-        console.error("Error fetching analysis:", err);
+      console.log("Getting analysis: " + model);
+      const response = await fetch(
+        `${ANALYSIS_URL}/api/analysis/now?faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}&model=${model}`,
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to fetch data: ${response.status}`);
+      const analysis_result = await response.json();
+      setAnalysis(analysis_result.analysis);
+      console.log(analysis_result);
+    } catch (err) {
+      console.error("Error fetching analysis:", err);
+    }
+  };
+
+  const fetchData = async () => {
+    setError(null);
+    const fakultas_data = fakultas === "all" ? "" : fakultas;
+    const gedung_data = gedung === "all" ? "" : gedung;
+    const lantai_data = lantai === "all" ? "" : lantai;
+
+    try {
+      const url = `${ANALYSIS_URL}/api/now?date=${date}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
+
+      console.log(url);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.status}`);
       }
-    };
+
+      const data: ElisaData = await response.json();
+      setData(data);
+      setComparison([
+        data.today_data.avg_daya - data.prev_month_data.hour_daya,
+        data.today_data.avg_cost - data.prev_month_data.hour_cost,
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setData(null);
@@ -201,58 +257,26 @@ export default function Home() {
     setLoading(true);
     const current_date = getLocalDateString();
     setDate(current_date);
-    
-
-    const fetchData = async () => {
-      setError(null);
-      const fakultas_data = fakultas === "all" ? "" : fakultas;
-      const gedung_data = gedung === "all" ? "" : gedung;
-      const lantai_data = lantai === "all" ? "" : lantai;
-
-      try {
-        const url = `${ANALYSIS_URL}/api/now?date=${current_date}&faculty=${fakultas_data}&building=${gedung_data}&floor=${lantai_data}`;
-
-        console.log(url);
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.status}`);
-        }
-
-        const data: ElisaData = await response.json();
-        setData(data);
-        setComparison(
-          [
-            data.today_data.avg_daya - data.prev_month_data.hour_daya,
-            data.today_data.avg_cost - data.prev_month_data.hour_cost,
-          ]
-        )
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error occurred");
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
 
     fetchData();
 
-    let intervalId: NodeJS.Timeout;
-    intervalId = setInterval(fetchData, 1 * 60 * 1000);
+    fetchAnalysis();
+
+    const intervalId = setInterval(() => {
+      const currentMinute = new Date().getMinutes();
+      if (currentMinute !== prevMinute.current) {
+        console.log("Minute changed! Refetching data.");
+        setLoading(true);
+        fetchData();
+        fetchAnalysis();
+        prevMinute.current = currentMinute;
+      }
+    }, 1000);
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      clearInterval(intervalId);
     };
-  }, [date, fakultas, gedung, lantai]);
-
-  useEffect(() => {
-    setAnalysis("")
-    fetchAnalysis()
-  }, [data, date, fakultas, gedung, lantai, model])
-
-
-
-
+  }, [date, fakultas, gedung, lantai, model]);
 
   const chartData =
     data?.chart_data.map((item) => ({
@@ -271,26 +295,25 @@ export default function Home() {
     -Infinity,
   );
 
-  // Floor to 2 decimal places
-  const minPowerRounded = Math.floor(minPower * 100) / 100;
-  const maxPowerRounded = Math.ceil(maxPower * 100) / 100;
   // Calculate the bottom domain value (90% of the minimum power)
-  const bottomDomain = Math.floor(minPower * 0.98)
-  const topDomain = Math.ceil(maxPower * 1.02)
+  const bottomDomain = Math.floor(minPower * 0.98);
+  const topDomain = Math.ceil(maxPower * 1.02);
 
   return (
-    <motion.div className="grid grid-cols-5 gap-4"
+    <motion.div
+      className="grid grid-cols-5 gap-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}>
+      exit={{ opacity: 0 }}
+    >
       <Card className="col-span-5 lg:col-span-4 ">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-            <Activity className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Last Hour{"'"}s Usage
+            <Activity className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" />{" "}
+            Last Hour{"'"}s Usage
           </CardTitle>
         </CardHeader>
         <CardContent>
-
           <div className="">
             {/* Filter Section */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
@@ -343,7 +366,9 @@ export default function Home() {
                   <SelectTrigger className="py-5">
                     <SelectValue
                       placeholder={
-                        fakultas !== "all" ? "Select Gedung" : "Select Fakultas first"
+                        fakultas !== "all"
+                          ? "Select Gedung"
+                          : "Select Fakultas first"
                       }
                     />
                   </SelectTrigger>
@@ -369,7 +394,9 @@ export default function Home() {
                   <SelectTrigger className="py-5">
                     <SelectValue
                       placeholder={
-                        gedung !== "all" ? "Select Lantai" : "Select Gedung first"
+                        gedung !== "all"
+                          ? "Select Lantai"
+                          : "Select Gedung first"
                       }
                     />
                   </SelectTrigger>
@@ -386,7 +413,9 @@ export default function Home() {
 
               {/* Reset Button */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1  text-slate-900 dark:text-slate-100/0">.</label>
+                <label className="text-sm font-medium mb-1  text-slate-900 dark:text-slate-100/0">
+                  .
+                </label>
                 <Button
                   onClick={() => {
                     setFakultas("all");
@@ -428,340 +457,417 @@ export default function Home() {
                   exit={{ opacity: 0 }}
                   layout
                   className="sm:h-full min-h-[400px] flex flex-col"
-                > {
-                    data ? (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                          {/* Chart Section */}
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className=" font-semibold">
-                                Power Consumption Since Last Hour (kW)
-                              </CardTitle>
-                            </CardHeader>
-                            {/* <h2 className="text-xl font-semibold mb-4">
+                >
+                  {data ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                        {/* Chart Section */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className=" font-semibold">
+                              Power Consumption Since Last Hour (kW)
+                            </CardTitle>
+                          </CardHeader>
+                          {/* <h2 className="text-xl font-semibold mb-4">
                         Power Consumption Since Last Hour
                       </h2> */}
-                            <CardContent className="h-80" >
-                              <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData}>
-                                  <defs>
-                                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="0%" stopColor="#1e9bb9" stopOpacity={0.8} />
-                                      <stop offset="100%" stopColor="#1e9bb9" stopOpacity={0} />
-                                    </linearGradient>
-                                  </defs>
+                          <CardContent className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={chartData}>
+                                <defs>
+                                  <linearGradient
+                                    id="areaGradient"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                  >
+                                    <stop
+                                      offset="0%"
+                                      stopColor="#1e9bb9"
+                                      stopOpacity={0.8}
+                                    />
+                                    <stop
+                                      offset="100%"
+                                      stopColor="#1e9bb9"
+                                      stopOpacity={0}
+                                    />
+                                  </linearGradient>
+                                </defs>
 
-                                  <XAxis
-                                    dataKey="formattedTime"
-                                    tick={{ fontSize: 12 }}
-                                    stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
-                                    interval={Math.floor(chartData.length / 10)}
-                                  />
+                                <XAxis
+                                  dataKey="formattedTime"
+                                  tick={{ fontSize: 12 }}
+                                  stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
+                                  interval={Math.floor(chartData.length / 10)}
+                                />
 
-                                  <YAxis
-                                    tick={{ fontSize: 12 }}
-                                    stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
-                                    domain={[bottomDomain, topDomain]}
-                                    tickFormatter={(value) => {
-                                      const roundedValue = Math.round(value / 10) * 10;
-                                      return `${roundedValue} kW`;
-                                    }}
-                                  />
+                                <YAxis
+                                  tick={{ fontSize: 12 }}
+                                  stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
+                                  domain={[bottomDomain, topDomain]}
+                                  tickFormatter={(value) => `${value} kW`}
+                                />
 
-                                  <Tooltip
-                                    formatter={(value) => [`${value} kW`, "Power"]}
-                                    labelFormatter={(label) => `Time: ${label}`}
-                                    contentStyle={{
-                                      backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
-                                      border: "none",
-                                      borderRadius: "8px",
-                                      padding: "8px",
-                                    }}
-                                  />
-                                  <Area
-                                    type="monotone"
-                                    dataKey="power"
-                                    strokeWidth={2}
-                                    fill="url(#areaGradient)" // Using the gradient here
-                                    stroke="#1e9bb9"
-                                    activeDot={{ r: 8 }}
-                                    name="Power Consumption"
-                                  />
-                                </AreaChart>
-                              </ResponsiveContainer>
-                            </CardContent>
-                          </Card>
-
-                          <Card>
-                            <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
-                              <Select
-                              value={model}
-                              onValueChange={((value) => {
-                                setModel(value);
-                              })}
-                            >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
-                                <SelectValue placeholder="Select Model" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
-                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
-                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
-                              </SelectContent>
-                            </Select>  
-                            </CardHeader>
-                            <CardContent className="text-slate-900 dark:text-slate-100">
-                                {
-                                  !analysis ? (
-                                    <motion.div
-                                      key="analysis"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
-                                      className="flex items-center justify-center h-full"
-                                    >
-                                      <div className="flex-grow flex flex-col items-center justify-center">
-                                        <div className="flex items-center justify-center">
-                                          <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
-                                        </div>
-                                        <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                                          Loading analysis...
-                                        </div>
-                                      </div>
-                                    </motion.div>
-                                  ) : (
-                                    <div>
-                                      {
-                                        analysis && (
-                                          <motion.div
-                                            key="analysis"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            className="h-full"
-                                          >
-                                            <p className="">
-                                              {analysis.split("\n").map((line, index) => (
-                                                <p key={index} className="">
-                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                    if (part.startsWith("**") && part.endsWith("**")) {
-                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                    }
-                                                    return <span key={i}>{part}</span>;
-                                                  })}
-                                                </p>
-                                              ))}
-                                            </p>
-                                          </motion.div>
-                                        )
-                                      }
-                                    </div>
-                                  )
-                                }
-                            </CardContent>
-                          </Card>
-                        </div>
-
-
-
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-8">
-                        {/* Chart Section - Clustered Column Chart */}
-                        <Card>
-                          <CardHeader> <CardTitle className=" font-semibold">Data not Available</CardTitle></CardHeader>
-                          <CardContent className="">
-                            Failed to fetch data from ELISA API. Please check analysis for more information.
+                                <Tooltip
+                                  formatter={(value) => [`${value} kW`, "Power"]}
+                                  labelFormatter={(label) => `Time: ${label}`}
+                                  contentStyle={{
+                                    backgroundColor:
+                                      theme === "dark" ? "#1e293b" : "#ffffff",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    padding: "8px",
+                                  }}
+                                />
+                                <Area
+                                  type="monotone"
+                                  dataKey="power"
+                                  strokeWidth={2}
+                                  fill="url(#areaGradient)" // Using the gradient here
+                                  stroke="#1e9bb9"
+                                  activeDot={{ r: 8 }}
+                                  name="Power Consumption"
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
                           </CardContent>
                         </Card>
+
                         <Card>
-                          <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
-                              <Select
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">
+                              AI-Generated Report
+                            </CardTitle>
+                            <Select
                               value={model}
-                              onValueChange={((value) => {
+                              onValueChange={(value) => {
                                 setModel(value);
-                              })}
+                              }}
                             >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                              <SelectTrigger
+                                className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2"
+                                disabled={!analysis}
+                              >
                                 <SelectValue placeholder="Select Model" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
-                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                <SelectItem value="gemini">
+                                  Gemini 2.0 Flash
+                                </SelectItem>
+                                <SelectItem value="deepseek">
+                                  Deepseek R1 Distill Llama 8B
+                                </SelectItem>
                                 <SelectItem value="gemma">Gemma 3 4B</SelectItem>
                               </SelectContent>
-                            </Select>  
-                            </CardHeader>
+                            </Select>
+                          </CardHeader>
                           <CardContent className="text-slate-900 dark:text-slate-100">
-                            {
-                              !analysis ? (
+                            {!analysis ? (
+                              <motion.div
+                                key="analysis"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-full"
+                              >
+                                <div className="flex-grow flex flex-col items-center justify-center">
+                                  <div className="flex items-center justify-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                  </div>
+                                  <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                    Loading analysis...
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div>
+                                {analysis && (
+                                  <motion.div
+                                    key="analysis"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="h-full"
+                                  >
+                                    <p className="">
+                                      {analysis.split("\n").map((line, index) => (
+                                        <p key={index} className="">
+                                          {line
+                                            .split(/(\*\*.*?\*\*|\*.*?\*)/)
+                                            .map((part, i) => {
+                                              if (
+                                                part.startsWith("**") &&
+                                                part.endsWith("**")
+                                              ) {
+                                                return (
+                                                  <span
+                                                    key={i}
+                                                    className="font-bold"
+                                                  >
+                                                    {part.slice(2, -2)}
+                                                  </span>
+                                                );
+                                              } else if (
+                                                part.startsWith("*") &&
+                                                part.endsWith("*")
+                                              ) {
+                                                return (
+                                                  <span
+                                                    key={i}
+                                                    className="italic"
+                                                  >
+                                                    {part.slice(1, -1)}
+                                                  </span>
+                                                );
+                                              }
+                                              return <span key={i}>{part}</span>;
+                                            })}
+                                        </p>
+                                      ))}
+                                    </p>
+                                  </motion.div>
+                                )}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-8">
+                      {/* Chart Section - Clustered Column Chart */}
+                      <Card>
+                        <CardHeader>
+                          {" "}
+                          <CardTitle className=" font-semibold">
+                            Data not Available
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="">
+                          Failed to fetch data from ELISA API. Please check
+                          analysis for more information.
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="flex justify-between">
+                          <CardTitle className=" font-semibold">
+                            AI-Generated Report
+                          </CardTitle>
+                          <Select
+                            value={model}
+                            onValueChange={(value) => {
+                              setModel(value);
+                            }}
+                          >
+                            <SelectTrigger
+                              className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2"
+                              disabled={!analysis}
+                            >
+                              <SelectValue placeholder="Select Model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="gemini">
+                                Gemini 2.0 Flash
+                              </SelectItem>
+                              <SelectItem value="deepseek">
+                                Deepseek R1 Distill Llama 8B
+                              </SelectItem>
+                              <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </CardHeader>
+                        <CardContent className="text-slate-900 dark:text-slate-100">
+                          {!analysis ? (
+                            <motion.div
+                              key="analysis"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex items-center justify-center h-full"
+                            >
+                              <div className="flex-grow flex flex-col items-center justify-center">
+                                <div className="flex items-center justify-center">
+                                  <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                                </div>
+                                <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
+                                  Loading analysis...
+                                </div>
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <div>
+                              {analysis && (
                                 <motion.div
                                   key="analysis"
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}
-                                  className="flex items-center justify-center h-full"
+                                  className="h-full"
                                 >
-                                  <div className="flex-grow flex flex-col items-center justify-center">
-                                    <div className="flex items-center justify-center">
-                                      <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
-                                    </div>
-                                    <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                                      Loading analysis...
-                                    </div>
-                                  </div>
+                                  <p className="">{analysis}</p>
                                 </motion.div>
-                              ) : (
-                                <div>
-                                  {
-                                    analysis && (
-                                      <motion.div
-                                        key="analysis"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="h-full"
-                                      >
-                                        <p className="">
-                                          {analysis}
-                                        </p>
-                                      </motion.div>
-                                    )
-                                  }
-                                </div>
-                              )
-                            }
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )
-                  }
-
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </motion.div>
               </>
-            )
-
-            }
-            {/* {error && <p className="text-red-500 text-center">Error: {error}</p>} */}
+            )}
+            {/* {error && <p className="text-red-500 text-center">Error:
+            {error}</p>} */}
           </div>
         </CardContent>
       </Card>
-      {
-        data && (
-          <>
-            <motion.div className="col-span-5 lg:col-span-1" initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}>
-              {/* shadow center */}
-              <Card className="mb-4 w-full">
-                <CardHeader className="pt-1">
-                  <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                    {
-                      comparison[0] > 0 ? (
-                        <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
-                      ) : (
-                        <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
-                      )
-                    }
-                    Comparison
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
+      {data && (
+        <>
+          <motion.div
+            className="col-span-5 lg:col-span-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* shadow center */}
+            <Card className="mb-4 w-full">
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                  {comparison[0] > 0 ? (
+                    <ArrowDownRight className="mr-2 h-5 w-5 text-rose-600 dark:text-rose-500 -mt-1" />
+                  ) : (
+                    <ArrowUpRight className="mr-2 h-5 w-5 text-green-500 dark:text-green-400 -mt-1" />
+                  )}
+                  Comparison
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div>
+                  <p className="font-medium text-xs">
+                    Last Hour{"'"}s Total (Difference)
+                  </p>
+                  <p className="font-semibold text-lg mt-1">
+                    Rp{formatNumber(comparison[1], 0)}
+                  </p>
+                  <p className="">{formatNumber(comparison[0])} kWh</p>
+                  {comparison[0] > 0 ? (
+                    <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">
+                      Increase in energy cost compared to last month{"'"}s average
+                    </p>
+                  ) : (
+                    <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">
+                      Reduction in energy cost compared to last month{"'"}s average
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pt-1">
+                <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
+                  <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" />{" "}
+                  Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
                   <div>
-                    <p className="font-medium text-xs">Last Hour{"'"}s Total (Difference)</p>
-                    <p className="font-semibold text-lg mt-1">Rp{formatNumber(comparison[1], 0)}</p>
-                    <p className="">{formatNumber(comparison[0])} kWh</p>
-                    {
-                      comparison[0] > 0 ? (
-                        <p className="mt-2 font-medium text-xs text-rose-600 dark:text-rose-500">Increase in energy cost compared to last month{"'"}s average</p>
-                      ) : (
-                        <p className="mt-2 font-medium text-xs text-green-500 dark:text-green-400">Reduction in energy cost compared to last month{"'"}s average</p>
-                      )
-                    }
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                      Today{"'"}s Total
+                    </h3>
+                    <p className="font-semibold text-lg mt-1">
+                      Rp{formatNumber(data.today_data.total_cost, 0)}
+                    </p>
+                    <p className="">
+                      {formatNumber(data.today_data.total_daya)} kWh
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pt-1">
-                  <CardTitle className="font-semibold text-slate-900 dark:text-slate-100">
-                    <FileChartColumnIncreasing className="mr-2 -mt-1 h-5 w-5 text-cyan-600 dark:text-cyan-400" /> Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                    <div>
-                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Today{"'"}s Total</h3>
-                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.total_cost, 0)}</p>
-                      <p className="">{formatNumber(data.today_data.total_daya)} kWh</p>
-                    </div>
-                    <div>
-                      <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">Today{"'"}s Hourly Average</h3>
-                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.today_data.avg_cost, 0)}</p>
-                      <p className="">{formatNumber(data.today_data.avg_daya)} kWh</p>
-                    </div>
-                    <div>
-                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month{"'"}s Total</h3>
-                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.total_cost, 0)}</p>
-                      <p className="">{formatNumber(data.prev_month_data?.total_daya)} kWh</p>
-                    </div>
-                    <div>
-                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month{"'"}s Daily Average</h3>
-                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.day_cost, 0)}</p>
-                      <p className="">{formatNumber(data.prev_month_data?.day_daya)} kWh</p>
-                    </div>
-                    <div>
-                      <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">Prev. Month{"'"}s Hourly Average</h3>
-                      <p className="font-semibold text-lg mt-1">Rp{formatNumber(data.prev_month_data?.hour_cost, 0)}</p>
-                      <p className="">{formatNumber(data.prev_month_data?.hour_daya)} kWh</p>
-                    </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                      Today{"'"}s Hourly Average
+                    </h3>
+                    <p className="font-semibold text-lg mt-1">
+                      Rp{formatNumber(data.today_data.avg_cost, 0)}
+                    </p>
+                    <p className="">
+                      {formatNumber(data.today_data.avg_daya)} kWh
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-            {/* Table Section */}
-            <motion.div className="col-span-5 lg:col-span-4" initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}>
-
-
-              <Card className="">
-                <CardHeader>
-                  <CardTitle className=" font-semibold">
-                    Power Consumption Data
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-
-                  <div className="rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader className="">
-                        <TableRow>
-                          <TableHead>Timestamp (UTC+7)</TableHead>
-                          <TableHead>Power</TableHead>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">
+                      Prev. Month{"'"}s Total
+                    </h3>
+                    <p className="font-semibold text-lg mt-1">
+                      Rp{formatNumber(data.prev_month_data?.total_cost, 0)}
+                    </p>
+                    <p className="">
+                      {formatNumber(data.prev_month_data?.total_daya)} kWh
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">
+                      Prev. Month{"'"}s Daily Average
+                    </h3>
+                    <p className="font-semibold text-lg mt-1">
+                      Rp{formatNumber(data.prev_month_data?.day_cost, 0)}
+                    </p>
+                    <p className="">
+                      {formatNumber(data.prev_month_data?.day_daya)} kWh
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className=" text-xs font-medium text-amber-500 dark:text-amber-400">
+                      Prev. Month{"'"}s Hourly Average
+                    </h3>
+                    <p className="font-semibold text-lg mt-1">
+                      Rp{formatNumber(data.prev_month_data?.hour_cost, 0)}
+                    </p>
+                    <p className="">
+                      {formatNumber(data.prev_month_data?.hour_daya)} kWh
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          {/* Table Section */}
+          <motion.div
+            className="col-span-5 lg:col-span-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Card className="">
+              <CardHeader>
+                <CardTitle className=" font-semibold">
+                  Power Consumption Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader className="">
+                      <TableRow>
+                        <TableHead>Timestamp (UTC+7)</TableHead>
+                        <TableHead>Power</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.chart_data.slice(0, 10).map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{formatTimestamp(item.timestamp)}</TableCell>
+                          <TableCell>{formatNumber(item.power)} kW</TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.chart_data.slice(0, 10).map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{formatTimestamp(item.timestamp)}</TableCell>
-                            <TableCell>{formatNumber(item.power)} kW</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </>
-        )
-      }
-
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </>
+      )}
     </motion.div>
   );
 }

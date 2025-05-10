@@ -29,7 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
   chart_data: {
@@ -81,13 +81,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
   // Filter states
-  const [date, setDate] = useState(searchParams.get('date') || getLocalDateString());
-  const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
-  const [gedung, setGedung] = useState(searchParams.get('building') || "all");
-  const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+  // const [date, setDate] = useState(searchParams.get('date') || getLocalDateString());
+  // const [fakultas, setFakultas] = useState(searchParams.get('faculty') || "all");
+  // const [gedung, setGedung] = useState(searchParams.get('building') || "all");
+  // const [lantai, setLantai] = useState(searchParams.get('floor') || "all");
+
+  const [date, setDate] = useState(getLocalDateString());
+  const [fakultas, setFakultas] = useState("all");
+  const [gedung, setGedung] = useState("all");
+  const [lantai, setLantai] = useState("all");
 
   // Options states
   const [fakultasOptions, setFakultasOptions] = useState<Option[]>([]);
@@ -157,7 +162,7 @@ export default function Home() {
       }
     };
     fetchGedung();
-  }, [fakultas]);
+  }, [ANALYSIS_URL, fakultas]);
 
   // Fetch lantai options when gedung changes
   useEffect(() => {
@@ -182,7 +187,7 @@ export default function Home() {
       }
     };
     fetchLantai();
-  }, [gedung, fakultas]);
+  }, [ANALYSIS_URL, gedung, fakultas]);
 
 
   // Fetch data when filters change

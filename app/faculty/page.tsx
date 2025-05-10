@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 interface FacultyComparisonData {
   value: {
@@ -82,9 +82,10 @@ export default function FacultyComparison() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter state - default to current month
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
-  const [month, setMonth] = useState(searchParams.get('date') || getLocalYearMonth());
+  // const [month, setMonth] = useState(searchParams.get('date') || getLocalYearMonth());
+  const [month, setMonth] = useState(getLocalYearMonth());
 
   // Sort state
   const [sortField, setSortField] = useState<keyof FacultyComparisonData['info'][0]>("energy");
@@ -133,9 +134,7 @@ export default function FacultyComparison() {
       }
     };
 
-    
-
-    const fetchAll = async () =>     fetchData();
+    fetchData();
 
     let intervalId: NodeJS.Timeout;
     intervalId = setInterval(fetchData, 60 * 60 * 1000);
