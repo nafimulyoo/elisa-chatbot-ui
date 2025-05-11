@@ -22,13 +22,13 @@ export const SuggestedQueries = ({
     ["3 fakultas teratas yang paling banyak menggunakan energi dalam 3 bulan terakhir", "Basic Analysis"],
     ["Jam puncak penggunaan Labtek VI dan FTI seminggu terakhir", "Basic Analysis"],
     ["Jam terendah penggunaan Labtek X dan FITB bulan lalu", "Basic Analysis"],
-    ["Rata-rata penggunaan harian Lbatek VI di lantai 3", "Basic Analysis"],
+    ["Rata-rata penggunaan harian Labtek VI di lantai 3", "Basic Analysis"],
     ["Perkiraan penggunaan energi listrik ITB satu bulan kedepan, dengan tidak melupakan hari libur nasional", "Advanced Analysis"],
     ["Prediksi jam puncak Labtek VI, Labtek X, dan FTI minggu depan", "Advanced Analysis"],
-    ["Prediksi fakultas mana yang paling boros di jam 12 siang besok", "Advanced Analysis"],
+    ["Prediksi FTI atau FITB yang paling boros di jam 12 siang besok", "Advanced Analysis"],
     ["Prediksi jam yang paling hemat energi listrik di ITB bulan depan", "Advanced Analysis"],
     ["Perkirakan total konsumsi energi ITB untuk kuartal berikutnya, dengan mempertimbangkan data historis dan variasi musiman.", "Advanced Analysis"],
-    ["Prediksi gedung yang paling hemat energi listrik di ITB besok", "Advanced Analysis"],
+    ["Prediksi fakultas yang paling hemat energi listrik di ITB pekan depan", "Advanced Analysis"],
     ["Prediksi total pemakaian energi listrik di ITB pada Oktober 2025", "Advanced Analysis"],
   ];
   return (
