@@ -24,7 +24,7 @@ export default function SmartAnalysis() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("Analyzing request...");
   const [notebook, setNotebook]: any = useState({});
-  const [model, setModel] = useState("gemini-2.5");
+  const [model, setModel] = useState("gemini");
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const { theme, setTheme } = useTheme();
 

@@ -72,7 +72,7 @@ const SearchParamsWrapper = ({
             <SelectValue placeholder="Select Model" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="gemini-2.5">Gemini 2.5 Flash</SelectItem>
+            {/* <SelectItem value="gemini-2.5">Gemini 2.5 Flash</SelectItem> */}
             <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
             <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
             <SelectItem value="gemma">Gemma 3 4B</SelectItem>
