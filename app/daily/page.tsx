@@ -29,6 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { Markdown } from "@/components/markdown";
 // import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
@@ -256,7 +257,10 @@ export default function Home() {
   return (
     <motion.div className="grid grid-cols-5 gap-4" initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}>
+      exit={{ opacity: 0 }}
+      // speed slower
+      transition={{ duration: 1 }}
+      >
       <Card className="col-span-5 lg:col-span-4">
         <CardHeader className="mb-4 py-3">
           <CardTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
@@ -542,6 +546,9 @@ export default function Home() {
                                                 </p>
                                               ))}
                                           </p>
+                                          <Markdown>
+                                            {analysis}
+                                          </Markdown>
                                         </motion.div>
                                       )
                                     }

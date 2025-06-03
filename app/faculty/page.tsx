@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { Markdown } from "@/components/markdown";
 // import { useSearchParams } from "next/navigation";
 
 interface FacultyComparisonData {
@@ -276,15 +277,15 @@ export default function FacultyComparison() {
                         </Card>
 
                         <Card className="mb-8">
-                                                      <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
-                              <Select
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
+                            <Select
                               value={model}
                               onValueChange={((value) => {
                                 setModel(value);
                               })}
                             >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                              <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
                                 <SelectValue placeholder="Select Model" />
                               </SelectTrigger>
                               <SelectContent>
@@ -292,9 +293,9 @@ export default function FacultyComparison() {
                                 <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
                                 <SelectItem value="gemma">Gemma 3 4B</SelectItem>
                               </SelectContent>
-                            </Select>  
-                            </CardHeader>
-                            <CardContent className="text-slate-900 dark:text-slate-100">
+                            </Select>
+                          </CardHeader>
+                          <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -326,17 +327,17 @@ export default function FacultyComparison() {
                                       >
                                         <p className="">
                                           {analysis.split("\n").map((line, index) => (
-                                                <p key={index} className="">
-                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                    if (part.startsWith("**") && part.endsWith("**")) {
-                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                    }
-                                                    return <span key={i}>{part}</span>;
-                                                  })}
-                                                </p>
-                                              ))}
+                                            <p key={index} className="">
+                                              {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                if (part.startsWith("**") && part.endsWith("**")) {
+                                                  return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                  return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                }
+                                                return <span key={i}>{part}</span>;
+                                              })}
+                                            </p>
+                                          ))}
                                         </p>
                                       </motion.div>
                                     )
@@ -358,15 +359,15 @@ export default function FacultyComparison() {
                           </CardContent>
                         </Card>
                         <Card>
-                                                      <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
-                              <Select
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
+                            <Select
                               value={model}
                               onValueChange={((value) => {
                                 setModel(value);
                               })}
                             >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                              <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
                                 <SelectValue placeholder="Select Model" />
                               </SelectTrigger>
                               <SelectContent>
@@ -374,9 +375,9 @@ export default function FacultyComparison() {
                                 <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
                                 <SelectItem value="gemma">Gemma 3 4B</SelectItem>
                               </SelectContent>
-                            </Select>  
-                            </CardHeader>
-                            <CardContent className="text-slate-900 dark:text-slate-100">
+                            </Select>
+                          </CardHeader>
+                          <CardContent className="text-slate-900 dark:text-slate-100">
                             {
                               !analysis ? (
                                 <motion.div
@@ -407,18 +408,9 @@ export default function FacultyComparison() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis.split("\n").map((line, index) => (
-                                                <p key={index} className="">
-                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                    if (part.startsWith("**") && part.endsWith("**")) {
-                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                    }
-                                                    return <span key={i}>{part}</span>;
-                                                  })}
-                                                </p>
-                                              ))}
+                                          <Markdown>
+                                            {analysis}
+                                          </Markdown>
                                         </p>
                                       </motion.div>
                                     )

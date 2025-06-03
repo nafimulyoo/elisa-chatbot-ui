@@ -14,6 +14,7 @@ import {
   Download,
 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-themed";
+import { Markdown } from "./markdown";
 
 export const Results = ({
   data,
@@ -120,18 +121,9 @@ export const Results = ({
         </CardHeader>
         <CardContent>
           <div className="">
-            {explanation.split("\n").map((line, index) => (
-              <p key={index} className="">
-                {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                  if (part.startsWith("**") && part.endsWith("**")) {
-                    return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                  } else if (part.startsWith("*") && part.endsWith("*")) {
-                    return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                  }
-                  return <span key={i}>{part}</span>;
-                })}
-              </p>
-            ))}
+            <Markdown>
+              {explanation}
+            </Markdown>
           </div>
           <div className="flex-grow flex flex-col">
             {

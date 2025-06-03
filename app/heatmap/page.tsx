@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Markdown } from "@/components/markdown";
 // import { useSearchParams } from "next/navigation";
 
 interface HeatmapData {
@@ -64,15 +65,15 @@ export default function Home() {
         // if (searchStart && searchEnd) {
         //   return { start: searchStart, end: searchEnd };
         // } else {
-          const today = new Date();
-          const end = new Date(today);
-          const start = new Date(today);
-          start.setDate(today.getDate() - 6); // 6 days before today
+        const today = new Date();
+        const end = new Date(today);
+        const start = new Date(today);
+        start.setDate(today.getDate() - 6); // 6 days before today
 
-          return {
-            start: formatDate(start),
-            end: formatDate(end),
-          };
+        return {
+          start: formatDate(start),
+          end: formatDate(end),
+        };
         // }
       };
 
@@ -254,7 +255,7 @@ export default function Home() {
   const handleDateChange = (newDate: string) => {
     const date = new Date(newDate);
     const start = new Date(date);
-   
+
     const end = new Date(start);
     end.setDate(start.getDate() + 6); // End of week (Saturday)
 
@@ -641,18 +642,9 @@ export default function Home() {
                                         className="h-full"
                                       >
                                         <p className="">
-                                          {analysis.split("\n").map((line, index) => (
-                                            <p key={index} className="">
-                                              {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                if (part.startsWith("**") && part.endsWith("**")) {
-                                                  return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                  return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                }
-                                                return <span key={i}>{part}</span>;
-                                              })}
-                                            </p>
-                                          ))}
+                                          <Markdown>
+                                            {analysis}
+                                          </Markdown>
                                         </p>
                                       </motion.div>
                                     )

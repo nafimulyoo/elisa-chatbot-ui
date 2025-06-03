@@ -48,6 +48,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { Markdown } from "@/components/markdown";
 // import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
@@ -596,42 +597,9 @@ export default function Home() {
                                     exit={{ opacity: 0 }}
                                     className="h-full"
                                   >
-                                    <p className="">
-                                      {analysis.split("\n").map((line, index) => (
-                                        <p key={index} className="">
-                                          {line
-                                            .split(/(\*\*.*?\*\*|\*.*?\*)/)
-                                            .map((part, i) => {
-                                              if (
-                                                part.startsWith("**") &&
-                                                part.endsWith("**")
-                                              ) {
-                                                return (
-                                                  <span
-                                                    key={i}
-                                                    className="font-bold"
-                                                  >
-                                                    {part.slice(2, -2)}
-                                                  </span>
-                                                );
-                                              } else if (
-                                                part.startsWith("*") &&
-                                                part.endsWith("*")
-                                              ) {
-                                                return (
-                                                  <span
-                                                    key={i}
-                                                    className="italic"
-                                                  >
-                                                    {part.slice(1, -1)}
-                                                  </span>
-                                                );
-                                              }
-                                              return <span key={i}>{part}</span>;
-                                            })}
-                                        </p>
-                                      ))}
-                                    </p>
+                                    <Markdown>
+                                      {analysis}
+                                    </Markdown>
                                   </motion.div>
                                 )}
                               </div>

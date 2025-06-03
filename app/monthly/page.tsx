@@ -29,6 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card-t
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { formatNumber } from "@/lib/utils";
+import { Markdown } from "@/components/markdown";
 // import { useSearchParams } from "next/navigation";
 
 interface ElisaData {
@@ -479,23 +480,23 @@ export default function Home() {
                             </CardContent>
                           </Card>
                           <Card>
-                            <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
+                            <CardHeader className="flex justify-between">
+                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
                               <Select
-                              value={model}
-                              onValueChange={((value) => {
-                                setModel(value);
-                              })}
-                            >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
-                                <SelectValue placeholder="Select Model" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
-                                <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
-                                <SelectItem value="gemma">Gemma 3 4B</SelectItem>
-                              </SelectContent>
-                            </Select>  
+                                value={model}
+                                onValueChange={((value) => {
+                                  setModel(value);
+                                })}
+                              >
+                                <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                                  <SelectValue placeholder="Select Model" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="gemini">Gemini 2.0 Flash</SelectItem>
+                                  <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
+                                  <SelectItem value="gemma">Gemma 3 4B</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </CardHeader>
                             <CardContent className="text-slate-900 dark:text-slate-100">
                               {
@@ -529,17 +530,17 @@ export default function Home() {
                                         >
                                           <p className="">
                                             {analysis.split("\n").map((line, index) => (
-                                                <p key={index} className="">
-                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                    if (part.startsWith("**") && part.endsWith("**")) {
-                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                    }
-                                                    return <span key={i}>{part}</span>;
-                                                  })}
-                                                </p>
-                                              ))}
+                                              <p key={index} className="">
+                                                {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
+                                                  if (part.startsWith("**") && part.endsWith("**")) {
+                                                    return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+                                                  } else if (part.startsWith("*") && part.endsWith("*")) {
+                                                    return <span key={i} className="italic">{part.slice(1, -1)}</span>;
+                                                  }
+                                                  return <span key={i}>{part}</span>;
+                                                })}
+                                              </p>
+                                            ))}
                                           </p>
                                         </motion.div>
                                       )
@@ -562,15 +563,15 @@ export default function Home() {
                           </CardContent>
                         </Card>
                         <Card>
-                          <CardHeader className="flex justify-between"> 
-                              <CardTitle className=" font-semibold">AI-Generated Report</CardTitle> 
-                              <Select
+                          <CardHeader className="flex justify-between">
+                            <CardTitle className=" font-semibold">AI-Generated Report</CardTitle>
+                            <Select
                               value={model}
                               onValueChange={((value) => {
                                 setModel(value);
                               })}
                             >
-                            <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
+                              <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={!analysis}>
                                 <SelectValue placeholder="Select Model" />
                               </SelectTrigger>
                               <SelectContent>
@@ -578,8 +579,8 @@ export default function Home() {
                                 <SelectItem value="deepseek">Deepseek R1 Distill Llama 8B</SelectItem>
                                 <SelectItem value="gemma">Gemma 3 4B</SelectItem>
                               </SelectContent>
-                            </Select>  
-                            </CardHeader>
+                            </Select>
+                          </CardHeader>
                           <CardContent className="">
                             {
                               !analysis ? (
@@ -610,20 +611,9 @@ export default function Home() {
                                         exit={{ opacity: 0 }}
                                         className="h-full"
                                       >
-                                        <p className="">
-                                          {analysis.split("\n").map((line, index) => (
-                                                <p key={index} className="">
-                                                  {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, i) => {
-                                                    if (part.startsWith("**") && part.endsWith("**")) {
-                                                      return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
-                                                    } else if (part.startsWith("*") && part.endsWith("*")) {
-                                                      return <span key={i} className="italic">{part.slice(1, -1)}</span>;
-                                                    }
-                                                    return <span key={i}>{part}</span>;
-                                                  })}
-                                                </p>
-                                              ))}
-                                        </p>
+                                        <Markdown>
+                                          {analysis}
+                                        </Markdown>
                                       </motion.div>
                                     )
                                   }
