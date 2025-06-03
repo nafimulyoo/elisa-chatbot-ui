@@ -89,7 +89,7 @@ const SearchParamsWrapper = ({
               Clear
             </Button>
           ) : (
-            <Button type="submit" className="w-full sm:w-auto bg-cyan-600 dar:bg-cyan-500 text-white hover:bg-cyan-700 dark:hover:bg-cyan-400">
+            <Button type="submit" className="w-full sm:w-auto bg-cyan-600 dark:bg-cyan-500 text-white hover:bg-cyan-700 dark:hover:bg-cyan-400">
               Send
             </Button>
           )}

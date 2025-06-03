@@ -13,8 +13,10 @@ import { CodeBlock, atomOneLight, atomOneDark } from 'react-code-blocks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card-themed";
 import { useTheme } from "next-themes";
+import { Progress } from "./ui/progress";
 
 export default function SmartAnalysis() {
+  const [isStream, setIsStream] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [columns, setColumns]: any = useState([]);
@@ -22,7 +24,8 @@ export default function SmartAnalysis() {
   const [data, setData]: any = useState([]);
   const [visualizationType, setVisualizationType]: any = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState("Analyzing request...");
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [notebook, setNotebook]: any = useState({});
   const [model, setModel] = useState("gemini");
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -39,7 +42,7 @@ export default function SmartAnalysis() {
     };
   }, [abortController]);
 
-  const handleSubmit = async (suggestion?: string) => {
+  const handleSubmit = async (suggestion?: string, stream?: boolean) => {
     const question = suggestion ?? inputValue;
     if (inputValue.length === 0 && !suggestion) return;
     clearExistingData();
@@ -47,7 +50,7 @@ export default function SmartAnalysis() {
       setSubmitted(true);
     }
     setLoading(true);
-    setLoadingStep("Analyzing request...");
+    setLoadingMessage("Initiating analysis...");
 
     // Abort previous request if exists
     if (abortController) {
@@ -58,40 +61,118 @@ export default function SmartAnalysis() {
     setAbortController(controller);
 
     try {
+      if (!stream) {
+        setNotebook({});
+        const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}&model=${model}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+
+        setLoadingMessage("Processing results...");
+
+        // Process the results
+        const result: any = responseData["result"];
+        // concert notebook from string to json
+        const new_notebook: any = responseData["notebook"];
+        setNotebook(new_notebook);
+
+        if (result?.length > 0) {
+          for (let i = 0; i < result.length; i++) {
+            setExplanations((prev: any) => [...prev, result[i].explanation]);
+            if (result[i].data?.length > 0) {
+              setData((prev: any) => [...prev, result[i].data]);
+              setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
+              setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
+            }
+          }
+        }
+
+        setLoading(false);
+
+      }
+
       setNotebook({});
-      const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}&model=${model}`)
+      const response = await fetch(`${API_URL}/api/web-stream?prompt=${encodeURIComponent(question)}&model=${model}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const responseData = await response.json();
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      setLoadingStep("Processing results...");
+      const processStream = async () => {
 
-      // Process the results
-      const result: any = responseData["result"];
-      // concert notebook from string to json
-      const new_notebook: any = responseData["notebook"];
-      setNotebook(new_notebook);
-      console.log("Result:", result);
-      console.log("Notebook:", notebook);
+        let stream = true;
+        setLoadingProgress(0);
 
-      if (result?.length > 0) {
-        for (let i = 0; i < result.length; i++) {
-          setExplanations((prev: any) => [...prev, result[i].explanation]);
-          if (result[i].data?.length > 0) {
-            setData((prev: any) => [...prev, result[i].data]);
-            setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
-            setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
+        while (stream) {
+          const { value, done } = await reader?.read() || {};
+          const response = decoder.decode(value, { stream: true });
+
+          // json
+          // the response is a json string, get the property "progress", "message", and "data" which contains the data
+
+
+          const lines = response.split("\n").filter(line => line.trim() !== "");
+
+          for (const line of lines) {
+            const jsonResponse = JSON.parse(line);
+
+            console.log("JSON Response:", jsonResponse);
+
+            if (jsonResponse.message) {
+              setLoadingMessage(jsonResponse.message);
+            }
+
+            if (jsonResponse.progress) {
+              console.log("Progress:", jsonResponse.progress);
+              // set interval 0.1 to add delay to the progress
+              await new Promise(resolve => setTimeout(resolve, 200));
+              setLoadingProgress(jsonResponse.progress);
+            }
+
+            const jsonResponseData = jsonResponse.data
+            if (jsonResponseData) {
+              console.log("JSON Response Data:", jsonResponseData);
+              const result: any = jsonResponseData.result;
+              // concert notebook from string to json
+              const new_notebook: any = jsonResponseData.notebook;
+
+              console.log(result);
+              setNotebook(new_notebook);
+              console.log("Result:", result);
+              console.log("Notebook:", notebook);
+
+              if (result?.length > 0) {
+                for (let i = 0; i < result.length; i++) {
+                  setExplanations((prev: any) => [...prev, result[i].explanation]);
+                  if (result[i].data?.length > 0) {
+                    setData((prev: any) => [...prev, result[i].data]);
+                    setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
+                    setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
+                  }
+                }
+              }
+
+
+              if (jsonResponse.progress == 1.0) {
+                stream = false; // Stop the stream when progress is 100%
+                await new Promise(resolve => setTimeout(resolve, 200));
+                setLoading(false);
+                setLoadingMessage("");
+                setLoadingProgress(0);
+                break
+              }
+            }
           }
         }
       }
-      console.log("Data:", data);
-      console.log("Columns:", columns);
-      console.log("Visualization Type:", visualizationType);
 
-      setLoading(false);
+      await processStream();
     } catch (e: any) {
       if (e.name === 'AbortError') {
         console.log('Fetch aborted');
@@ -108,7 +189,7 @@ export default function SmartAnalysis() {
   const handleSuggestionClick = async (suggestion: string) => {
     setInputValue(suggestion);
     try {
-      await handleSubmit(suggestion);
+      await handleSubmit(suggestion, isStream);
     } catch (e) {
       toast.error("An error occurred. Please try again.");
     }
@@ -177,10 +258,13 @@ export default function SmartAnalysis() {
 
                       <div className="flex-grow flex flex-col items-center justify-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="h-12 w-12 animate-spin text-slate-600 dark:text-slate-300" />
+                          <Loader2 className="h-12 w-12 animate-spin text-slate-500 dark:text-slate-400" />
                         </div>
-                        <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300">
-                          Loading analysis...
+                        <Progress value={loadingProgress * 100} className="w-3/4 mt-8" />
+                        <div className="flex items-center justify-center mt-4 text-slate-600 dark:text-slate-300 mt-2">
+                          {
+                            loadingMessage
+                          }
                         </div>
                       </div>
 
@@ -219,77 +303,77 @@ export default function SmartAnalysis() {
                         </TabsContent>
 
                         <TabsContent value="code" className="flex-grow">
-                              <motion.div
-                                className=""
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.5, ease: "easeOut" }}
-                              >
+                          <motion.div
+                            className=""
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                          >
 
-                              
-                          {
-                            notebook && (
-                              notebook.cells.map((cell: any, index: number) => (
-                                <Card key={index} className="mt-4">
-                                  <CardHeader className="font-semibold">
-                                    <CardTitle>
-                                      Code Cell {index + 1}
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
 
-                                    <pre className=" p-4 rounded-md overflow-x-auto">
+                            {
+                              notebook && (
+                                notebook.cells.map((cell: any, index: number) => (
+                                  <Card key={index} className="mt-4">
+                                    <CardHeader className="font-semibold">
+                                      <CardTitle>
+                                        Code Cell {index + 1}
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
 
-                                      <CodeBlock
-                                        text={cell.source}
-                                        language="python"
-                                        showLineNumbers={true}
-                                        theme={theme === "dark" ? atomOneDark : atomOneLight}
-                                        customStyle={
-                                          {
-                                            backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
-                                            color: theme === "dark" ? "#cbd5e1" : "#000000",
-                                            padding: "1rem",
-                                            paddingTop: "2rem",
-                                            paddingBottom: "2rem",
-                                            borderRadius: "0.5rem",
-                                          }
-                                        }
-                                      />
-                                    </pre>
+                                      <pre className=" p-4 rounded-md overflow-x-auto">
 
-                                    {cell.outputs && cell.outputs.length > 0 && (
-                                      <Card className="mt-4">
-                                        <CardHeader>
-                                          <CardTitle className="text-md font-semibold text-slate-900 dark:text-slate-100">
-                                            Output
-                                          </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-0">
-                                          <pre className="p-4 overflow-x-auto bg-slate-100 dark:bg-slate-800 text-wrap">
+                                        <CodeBlock
+                                          text={cell.source}
+                                          language="python"
+                                          showLineNumbers={true}
+                                          theme={theme === "dark" ? atomOneDark : atomOneLight}
+                                          customStyle={
                                             {
-                                              cell.outputs.map((output: any, outputIndex: number) => (
-                                                <div key={outputIndex}>
-                                                  {output.data && output.data["text/plain"] ? (
-                                                    <div>{output.data["text/plain"]}</div>
-                                                  ) : (
-                                                    <div>{output.text}</div>
-                                                  )}
-                                                </div>
-                                              ))
+                                              backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
+                                              color: theme === "dark" ? "#cbd5e1" : "#000000",
+                                              padding: "1rem",
+                                              paddingTop: "2rem",
+                                              paddingBottom: "2rem",
+                                              borderRadius: "0.5rem",
                                             }
+                                          }
+                                        />
+                                      </pre>
 
-                                          </pre>
-                                        </CardContent>
-                                      </Card>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              )
-                              )
+                                      {cell.outputs && cell.outputs.length > 0 && (
+                                        <Card className="mt-4">
+                                          <CardHeader>
+                                            <CardTitle className="text-md font-semibold text-slate-900 dark:text-slate-100">
+                                              Output
+                                            </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="p-0">
+                                            <pre className="p-4 overflow-x-auto bg-slate-100 dark:bg-slate-800 text-wrap">
+                                              {
+                                                cell.outputs.map((output: any, outputIndex: number) => (
+                                                  <div key={outputIndex}>
+                                                    {output.data && output.data["text/plain"] ? (
+                                                      <div>{output.data["text/plain"]}</div>
+                                                    ) : (
+                                                      <div>{output.text}</div>
+                                                    )}
+                                                  </div>
+                                                ))
+                                              }
 
-                            )
-                          }
+                                            </pre>
+                                          </CardContent>
+                                        </Card>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                )
+                                )
+
+                              )
+                            }
                           </motion.div>
                         </TabsContent>
                       </Tabs>
