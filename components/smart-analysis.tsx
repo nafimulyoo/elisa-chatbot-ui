@@ -264,6 +264,14 @@ export default function SmartAnalysis() {
                           {
                             loadingMessage
                           }
+                          {
+                            " "
+                          }
+                          (
+                            {
+                              loadingProgress < 1 ? `${Math.round(loadingProgress * 100)}%` : "100%"
+                            }
+                          )
                         </div>
                       </div>
 
