@@ -60,6 +60,7 @@ export default function SmartAnalysis() {
     const controller = new AbortController();
     setAbortController(controller);
 
+
     try {
       if (!stream) {
         setNotebook({});
@@ -95,7 +96,9 @@ export default function SmartAnalysis() {
       }
 
       setNotebook({});
+      let buffer = "";
       const response = await fetch(`${API_URL}/api/web-stream?prompt=${encodeURIComponent(question)}&model=${model}`)
+      let progress = 0;
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -103,6 +106,7 @@ export default function SmartAnalysis() {
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
+
 
       const processStream = async () => {
 
@@ -112,27 +116,22 @@ export default function SmartAnalysis() {
         while (stream) {
           const { value, done } = await reader?.read() || {};
           const response = decoder.decode(value, { stream: true });
-
-          // json
-          // the response is a json string, get the property "progress", "message", and "data" which contains the data
-
+          buffer += response;
 
           console.log("Response: ", response);
-          const lines = response.split("\n").filter(line => line.trim() !== "");
+          const lines = buffer.split("\n").filter(line => line.trim() !== "");
 
           for (const line of lines) {
             const jsonResponse = JSON.parse(line);
 
-
-            if (jsonResponse.message) {
-              setLoadingMessage(jsonResponse.message);
-            }
-
             if (jsonResponse.progress) {
-              console.log("Progress:", jsonResponse.progress);
-              // set interval 0.1 to add delay to the progress
-              await new Promise(resolve => setTimeout(resolve, 200));
-              setLoadingProgress(jsonResponse.progress);
+              if (jsonResponse.progress > progress) {
+                progress = jsonResponse.progress;
+                console.log("Progress:", jsonResponse.progress);
+                await new Promise(resolve => setTimeout(resolve, 200));
+                setLoadingMessage(jsonResponse.message);
+                setLoadingProgress(jsonResponse.progress);
+              }
             }
 
             const jsonResponseData = jsonResponse.data
@@ -161,7 +160,7 @@ export default function SmartAnalysis() {
 
               if (jsonResponse.progress == 1.0) {
                 stream = false; // Stop the stream when progress is 100%
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // await new Promise(resolve => setTimeout(resolve, 200));
                 setLoading(false);
                 setLoadingMessage("");
                 setLoadingProgress(0);
