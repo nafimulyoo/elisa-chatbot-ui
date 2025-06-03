@@ -117,12 +117,12 @@ export default function SmartAnalysis() {
           // the response is a json string, get the property "progress", "message", and "data" which contains the data
 
 
+          console.log("Response: ", response);
           const lines = response.split("\n").filter(line => line.trim() !== "");
 
           for (const line of lines) {
             const jsonResponse = JSON.parse(line);
 
-            console.log("JSON Response:", jsonResponse);
 
             if (jsonResponse.message) {
               setLoadingMessage(jsonResponse.message);
