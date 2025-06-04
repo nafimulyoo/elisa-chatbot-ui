@@ -154,7 +154,6 @@ export default function SmartAnalysis() {
   
                 if (jsonResponse.progress == 1.0) {
                   stream = false; // Stop the stream when progress is 100%
-                  // await new Promise(resolve => setTimeout(resolve, 200));
                   setLoading(false);
                   break
                 }
@@ -171,6 +170,7 @@ export default function SmartAnalysis() {
       }
 
       await processStream();
+      console.log("Stream processing completed");
     } catch (e: any) {
       if (e.name === 'AbortError') {
         console.log('Fetch aborted');
