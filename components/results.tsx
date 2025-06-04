@@ -36,9 +36,9 @@ export const Results = ({
       .join(" ");
   };
 
-  console.log("Data:", data);
-  console.log("Columns:", columns);
-  console.log("Visualization Type:", visualizationType);
+  // console.log("Data:", data);
+  // console.log("Columns:", columns);
+  // console.log("Visualization Type:", visualizationType);
 
   const formatCellValue = (column: string, value: any) => {
     if (column.toLowerCase().includes("valuation")) {

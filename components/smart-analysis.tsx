@@ -49,6 +49,9 @@ export default function SmartAnalysis() {
       setSubmitted(true);
     }
     setLoading(true);
+    setNotebook({});
+    // setLoadingMessage("");
+    setLoadingProgress(0);
     setLoadingMessage("Initiating analysis...");
 
     if (abortController) {
@@ -59,38 +62,36 @@ export default function SmartAnalysis() {
     setAbortController(controller);
 
     try {
-      if (!stream) {
-        setNotebook({});
-        const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}&model=${model}`)
+      // if (!stream) {
+      //   setNotebook({});
+      //   const response = await fetch(`${API_URL}/api/web?prompt=${encodeURIComponent(question)}&model=${model}`)
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      //   if (!response.ok) {
+      //     throw new Error(`HTTP error! status: ${response.status}`);
+      //   }
 
-        const responseData = await response.json();
+      //   const responseData = await response.json();
 
-        setLoadingMessage("Processing results...");
+      //   setLoadingMessage("Processing results...");
 
-        const result: any = responseData["result"];
-        const new_notebook: any = responseData["notebook"];
-        setNotebook(new_notebook);
+      //   const result: any = responseData["result"];
+      //   const new_notebook: any = responseData["notebook"];
+      //   setNotebook(new_notebook);
 
-        if (result?.length > 0) {
-          for (let i = 0; i < result.length; i++) {
-            setExplanations((prev: any) => [...prev, result[i].explanation]);
-            if (result[i].data?.length > 0) {
-              setData((prev: any) => [...prev, result[i].data]);
-              setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
-              setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
-            }
-          }
-        }
-        setLoading(false);
-      }
+      //   if (result?.length > 0) {
+      //     for (let i = 0; i < result.length; i++) {
+      //       setExplanations((prev: any) => [...prev, result[i].explanation]);
+      //       if (result[i].data?.length > 0) {
+      //         setData((prev: any) => [...prev, result[i].data]);
+      //         setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
+      //         setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
+      //       }
+      //     }
+      //   }
+      //   setLoading(false);
+      // }
 
-      setNotebook({});
-      setLoadingMessage("");
-      setLoadingProgress(0);
+      
       let buffer = "";
       const response = await fetch(`${API_URL}/api/web-stream?prompt=${encodeURIComponent(question)}&model=${model}`)
       let progress = 0;
@@ -104,7 +105,6 @@ export default function SmartAnalysis() {
 
       const processStream = async () => {
         let streamProgress = true;
-        setLoadingProgress(0);
 
         while (streamProgress) {
           const { value, done } = await reader?.read() || {};
@@ -117,7 +117,7 @@ export default function SmartAnalysis() {
 
             for (const line of lines) {
               const jsonResponse = JSON.parse(line);
-  
+
               if (jsonResponse.progress) {
                 if (jsonResponse.progress > progress) {
                   progress = jsonResponse.progress;
@@ -127,19 +127,27 @@ export default function SmartAnalysis() {
                   setLoadingProgress(jsonResponse.progress);
                 }
               }
-  
+
               const jsonResponseData = jsonResponse.data
               if (jsonResponseData) {
                 // console.log("JSON Response Data:", jsonResponseData);
                 const result: any = jsonResponseData.result;
                 // concert notebook from string to json
                 const new_notebook: any = jsonResponseData.notebook;
-  
-                console.log(result);
-                setNotebook(new_notebook);
+
+
+                // console.log("JSON Response Data:", jsonResponseData);
+                if (new_notebook) {
+                  // console.log("New Notebook:", new_notebook);
+                  setNotebook(new_notebook);
+                }
+                else {
+                  // console.log("No Notebook found in response");
+                  setNotebook({});
+                }
                 // console.log("Result:", result);
                 // console.log("Notebook:", notebook);
-  
+
                 if (result?.length > 0) {
                   for (let i = 0; i < result.length; i++) {
                     setExplanations((prev: any) => [...prev, result[i].explanation]);
@@ -150,8 +158,8 @@ export default function SmartAnalysis() {
                     }
                   }
                 }
-  
-  
+
+
                 if (jsonResponse.progress == 1.0) {
                   streamProgress = false; // Stop the stream when progress is 100%
                   setLoading(false);
@@ -268,9 +276,9 @@ export default function SmartAnalysis() {
                             " "
                           }
                           (
-                            {
-                              loadingProgress < 1 ? `${Math.round(loadingProgress * 100)}%` : "100%"
-                            }
+                          {
+                            loadingProgress < 1 ? `${Math.round(loadingProgress * 100)}%` : "100%"
+                          }
                           )
                         </div>
                       </div>
@@ -285,11 +293,13 @@ export default function SmartAnalysis() {
                     ) : (
                       <Tabs defaultValue="result" className="w-full flex-grow flex flex-col">
                         {
-                          notebook ? (
-                            <TabsList className="grid w-full grid-cols-2">
-                              <TabsTrigger value="result">Result</TabsTrigger>
-                              <TabsTrigger value="code">Code</TabsTrigger>
-                            </TabsList>
+                          Object.keys(notebook).length > 0 ? (
+                            <>
+                              <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="result">Result</TabsTrigger>
+                                <TabsTrigger value="code">Code</TabsTrigger>
+                              </TabsList>
+                            </>
                           ) : (
                             <TabsList className="grid w-full grid-cols-1">
                               <TabsTrigger value="result">Result</TabsTrigger>
@@ -319,7 +329,8 @@ export default function SmartAnalysis() {
 
 
                             {
-                              notebook && (
+                              // if notebook is not {}
+                              Object.keys(notebook).length > 0 && (
                                 notebook.cells.map((cell: any, index: number) => (
                                   <Card key={index} className="mt-4">
                                     <CardHeader className="font-semibold">
