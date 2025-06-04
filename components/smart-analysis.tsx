@@ -155,7 +155,11 @@ export default function SmartAnalysis() {
                 if (jsonResponse.progress == 1.0) {
                   stream = false; // Stop the stream when progress is 100%
                   setLoading(false);
-                  break
+                  // stop the stream
+                  if (abortController) {
+                    abortController.abort();
+                    setAbortController(null);
+                  }
                 }
               }
             }
