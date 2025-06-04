@@ -111,7 +111,7 @@ export default function SmartAnalysis() {
           const response = decoder.decode(value, { stream: true });
           buffer += response;
 
-          console.log("Response: ", response);
+          // console.log("Response: ", response);
           const lines = buffer.split("\n").filter(line => line.trim() !== "");
           try {
 
@@ -121,7 +121,7 @@ export default function SmartAnalysis() {
               if (jsonResponse.progress) {
                 if (jsonResponse.progress > progress) {
                   progress = jsonResponse.progress;
-                  console.log("Progress:", jsonResponse.progress);
+                  // console.log("Progress:", jsonResponse.progress);
                   await new Promise(resolve => setTimeout(resolve, 200));
                   setLoadingMessage(jsonResponse.message);
                   setLoadingProgress(jsonResponse.progress);
@@ -130,15 +130,15 @@ export default function SmartAnalysis() {
   
               const jsonResponseData = jsonResponse.data
               if (jsonResponseData) {
-                console.log("JSON Response Data:", jsonResponseData);
+                // console.log("JSON Response Data:", jsonResponseData);
                 const result: any = jsonResponseData.result;
                 // concert notebook from string to json
                 const new_notebook: any = jsonResponseData.notebook;
   
                 console.log(result);
                 setNotebook(new_notebook);
-                console.log("Result:", result);
-                console.log("Notebook:", notebook);
+                // console.log("Result:", result);
+                // console.log("Notebook:", notebook);
   
                 if (result?.length > 0) {
                   for (let i = 0; i < result.length; i++) {
