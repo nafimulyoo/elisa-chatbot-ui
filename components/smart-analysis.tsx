@@ -103,10 +103,10 @@ export default function SmartAnalysis() {
       const decoder = new TextDecoder();
 
       const processStream = async () => {
-        let stream = true;
+        let streamProgress = true;
         setLoadingProgress(0);
 
-        while (stream) {
+        while (streamProgress) {
           const { value, done } = await reader?.read() || {};
           const response = decoder.decode(value, { stream: true });
           buffer += response;
@@ -153,7 +153,7 @@ export default function SmartAnalysis() {
   
   
                 if (jsonResponse.progress == 1.0) {
-                  stream = false; // Stop the stream when progress is 100%
+                  streamProgress = false; // Stop the stream when progress is 100%
                   setLoading(false);
                   // stop the stream
                   if (abortController) {
@@ -165,10 +165,7 @@ export default function SmartAnalysis() {
             }
           }
           catch (error) {
-            // ignore JSON parsing errors
             console.error("Error parsing JSON:", error);
-            // You can choose to handle the error differently if needed
-            
           }
         }
       }
