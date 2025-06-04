@@ -33,7 +33,6 @@ export default function SmartAnalysis() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Clean up the fetch request on unmount
   useEffect(() => {
     return () => {
       if (abortController) {
@@ -52,14 +51,12 @@ export default function SmartAnalysis() {
     setLoading(true);
     setLoadingMessage("Initiating analysis...");
 
-    // Abort previous request if exists
     if (abortController) {
       abortController.abort();
     }
 
     const controller = new AbortController();
     setAbortController(controller);
-
 
     try {
       if (!stream) {
@@ -74,9 +71,7 @@ export default function SmartAnalysis() {
 
         setLoadingMessage("Processing results...");
 
-        // Process the results
         const result: any = responseData["result"];
-        // concert notebook from string to json
         const new_notebook: any = responseData["notebook"];
         setNotebook(new_notebook);
 
@@ -90,12 +85,12 @@ export default function SmartAnalysis() {
             }
           }
         }
-
         setLoading(false);
-
       }
 
       setNotebook({});
+      setLoadingMessage("");
+      setLoadingProgress(0);
       let buffer = "";
       const response = await fetch(`${API_URL}/api/web-stream?prompt=${encodeURIComponent(question)}&model=${model}`)
       let progress = 0;
@@ -107,9 +102,7 @@ export default function SmartAnalysis() {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
-
       const processStream = async () => {
-
         let stream = true;
         setLoadingProgress(0);
 
@@ -163,8 +156,6 @@ export default function SmartAnalysis() {
                   stream = false; // Stop the stream when progress is 100%
                   // await new Promise(resolve => setTimeout(resolve, 200));
                   setLoading(false);
-                  setLoadingMessage("");
-                  setLoadingProgress(0);
                   break
                 }
               }
