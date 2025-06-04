@@ -120,53 +120,61 @@ export default function SmartAnalysis() {
 
           console.log("Response: ", response);
           const lines = buffer.split("\n").filter(line => line.trim() !== "");
+          try {
 
-          for (const line of lines) {
-            const jsonResponse = JSON.parse(line);
-
-            if (jsonResponse.progress) {
-              if (jsonResponse.progress > progress) {
-                progress = jsonResponse.progress;
-                console.log("Progress:", jsonResponse.progress);
-                await new Promise(resolve => setTimeout(resolve, 200));
-                setLoadingMessage(jsonResponse.message);
-                setLoadingProgress(jsonResponse.progress);
-              }
-            }
-
-            const jsonResponseData = jsonResponse.data
-            if (jsonResponseData) {
-              console.log("JSON Response Data:", jsonResponseData);
-              const result: any = jsonResponseData.result;
-              // concert notebook from string to json
-              const new_notebook: any = jsonResponseData.notebook;
-
-              console.log(result);
-              setNotebook(new_notebook);
-              console.log("Result:", result);
-              console.log("Notebook:", notebook);
-
-              if (result?.length > 0) {
-                for (let i = 0; i < result.length; i++) {
-                  setExplanations((prev: any) => [...prev, result[i].explanation]);
-                  if (result[i].data?.length > 0) {
-                    setData((prev: any) => [...prev, result[i].data]);
-                    setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
-                    setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
-                  }
+            for (const line of lines) {
+              const jsonResponse = JSON.parse(line);
+  
+              if (jsonResponse.progress) {
+                if (jsonResponse.progress > progress) {
+                  progress = jsonResponse.progress;
+                  console.log("Progress:", jsonResponse.progress);
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  setLoadingMessage(jsonResponse.message);
+                  setLoadingProgress(jsonResponse.progress);
                 }
               }
-
-
-              if (jsonResponse.progress == 1.0) {
-                stream = false; // Stop the stream when progress is 100%
-                // await new Promise(resolve => setTimeout(resolve, 200));
-                setLoading(false);
-                setLoadingMessage("");
-                setLoadingProgress(0);
-                break
+  
+              const jsonResponseData = jsonResponse.data
+              if (jsonResponseData) {
+                console.log("JSON Response Data:", jsonResponseData);
+                const result: any = jsonResponseData.result;
+                // concert notebook from string to json
+                const new_notebook: any = jsonResponseData.notebook;
+  
+                console.log(result);
+                setNotebook(new_notebook);
+                console.log("Result:", result);
+                console.log("Notebook:", notebook);
+  
+                if (result?.length > 0) {
+                  for (let i = 0; i < result.length; i++) {
+                    setExplanations((prev: any) => [...prev, result[i].explanation]);
+                    if (result[i].data?.length > 0) {
+                      setData((prev: any) => [...prev, result[i].data]);
+                      setColumns((prev: any) => [...prev, Object.keys(result[i].data[0])]);
+                      setVisualizationType((prev: any) => [...prev, result[i].visualization_type]);
+                    }
+                  }
+                }
+  
+  
+                if (jsonResponse.progress == 1.0) {
+                  stream = false; // Stop the stream when progress is 100%
+                  // await new Promise(resolve => setTimeout(resolve, 200));
+                  setLoading(false);
+                  setLoadingMessage("");
+                  setLoadingProgress(0);
+                  break
+                }
               }
             }
+          }
+          catch (error) {
+            // ignore JSON parsing errors
+            console.error("Error parsing JSON:", error);
+            // You can choose to handle the error differently if needed
+            
           }
         }
       }
