@@ -10,6 +10,7 @@ import { ExampleQueries } from "@/components/example-query";
 import { Search } from "@/components/search";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch"
+import { CodeBlock, atomOneDark, atomOneLight } from "react-code-blocks";
 
 import { Select , SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
