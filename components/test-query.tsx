@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card-themed";
 
-export const SuggestedQueries = ({
+export const TestQueries = ({
   handleSuggestionClick,
 }: {
   handleSuggestionClick: (suggestion: string) => void;
@@ -43,7 +43,7 @@ export const SuggestedQueries = ({
       <Card >
         <CardHeader>
           <CardTitle className=" font-semibold">
-            Test cases
+            Test Queries
           </CardTitle>
         </CardHeader>
         <CardContent className="rounded-lg overflow-hidden overflow-x-auto p-0">

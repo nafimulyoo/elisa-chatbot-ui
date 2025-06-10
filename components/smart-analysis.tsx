@@ -5,10 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Results } from "@/components/results";
-import { SuggestedQueries } from "@/components/suggested-queries";
+import { TestQueries } from "@/components/test-query";
+import { ExampleQueries } from "@/components/example-query";
 import { Search } from "@/components/search";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch"
 
-import { CodeBlock, atomOneLight, atomOneDark } from 'react-code-blocks';
+import { Select , SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card-themed";
@@ -17,6 +20,7 @@ import { Progress } from "./ui/progress";
 
 export default function SmartAnalysis() {
   const [isStream, setIsStream] = useState(true);
+  const [testMode, setTestMode] = useState("true"); // Set to true for test mode
   const [inputValue, setInputValue] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [columns, setColumns]: any = useState([]);
@@ -91,7 +95,7 @@ export default function SmartAnalysis() {
       //   setLoading(false);
       // }
 
-      
+
       let buffer = "";
       const response = await fetch(`${API_URL}/api/web-stream?prompt=${encodeURIComponent(question)}&model=${model}`)
       let progress = 0;
@@ -227,8 +231,30 @@ export default function SmartAnalysis() {
       exit={{ opacity: 0 }}>
       <Card>
         <CardHeader className="mb-4 py-3">
-          <CardTitle onClick={() => handleClear()} className="text-2xl font-semibold  text-slate-900 dark:text-slate-100">
+          <CardTitle onClick={() => handleClear()} className="text-2xl font-semibold  text-slate-900 dark:text-slate-100 flex items-center justify-between">
+            <div className="flex items-center">
             <BrainCircuit className="mr-3 h-6 w-6 text-cyan-600 dark:text-cyan-400" /> Smart Analysis Q&A
+            </div>
+            {/* toggle switch on right */}
+            <div className="mr-2 flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={testMode}
+                  onValueChange={((testMode) => {
+                    setTestMode(testMode);
+                  })}
+                >
+                  <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2 font-normal">
+                    <SelectValue placeholder="Select Model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* <SelectItem value="gemini-2.5">Gemini 2.5 Flash</SelectItem> */}
+                    <SelectItem value="true">Test Mode</SelectItem>
+                    <SelectItem value="false">Production Mode</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -248,9 +274,19 @@ export default function SmartAnalysis() {
             <div className="flex-grow h-full">
               <AnimatePresence mode="wait">
                 {!submitted ? (
-                  <SuggestedQueries
-                    handleSuggestionClick={handleSuggestionClick}
-                  />
+                  <>
+                    {
+                      testMode === "true" ? (
+                        <TestQueries
+                          handleSuggestionClick={handleSuggestionClick}
+                        />)
+                        : (
+                          <ExampleQueries
+                            handleSuggestionClick={handleSuggestionClick}
+                          />
+                        )
+                    }
+                  </>
                 ) : (
                   <motion.div
                     key="results"
