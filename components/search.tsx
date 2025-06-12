@@ -15,6 +15,7 @@ const SearchParamsWrapper = ({
   submitted,
   handleClear,
   model,
+  isLoading,
   setModel,
 }: any) => {
   const searchParams = useSearchParams();
@@ -68,7 +69,7 @@ const SearchParamsWrapper = ({
             setModel(value);
           })}
         >
-          <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={submitted}>
+          <SelectTrigger className="py-5 mt-2 w-auto text-slate-900 dark:text-slate-100 mr-2" disabled={isLoading}>
             <SelectValue placeholder="Select Model" />
           </SelectTrigger>
           <SelectContent>

@@ -267,6 +267,7 @@ export default function SmartAnalysis() {
             submitted={submitted}
             model={model}
             setModel={setModel}
+            isLoading={loading}
           />
           <div
             id="main-container"

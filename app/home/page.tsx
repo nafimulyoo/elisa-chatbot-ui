@@ -135,9 +135,7 @@ export default function Home() {
         const response = await fetch(`${ANALYSIS_URL}/api/get-fakultas`);
         if (!response.ok) throw new Error("Failed to fetch fakultas");
         var data = await response.json();
-        data.fakultas = data.fakultas.filter(
-          (fakultas: Option) => fakultas.value !== "-",
-        );
+        data.fakultas = data.fakultas.filter((fakultas: Option) => fakultas.value !== "-",);
         setFakultasOptions(data.fakultas || []);
       } catch (err) {
         console.error("Error fetching fakultas:", err);
