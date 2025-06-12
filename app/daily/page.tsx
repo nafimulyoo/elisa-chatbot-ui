@@ -345,7 +345,7 @@ export default function Home() {
                 <Select
                   value={lantai}
                   onValueChange={setLantai}
-                  disabled={gedung === "all"}
+                  disabled={gedung === "all" || fakultas === "all"}
                 >
                   <SelectTrigger className="py-5">
                     <SelectValue

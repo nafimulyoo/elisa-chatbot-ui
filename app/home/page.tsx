@@ -295,14 +295,26 @@ export default function Home() {
     Infinity,
   );
 
+
   const maxPower = chartData.reduce(
     (max, item) => Math.max(max, item.power),
     -Infinity,
   );
 
-  // Calculate the bottom domain value (90% of the minimum power)
-  const bottomDomain = Math.floor(minPower * 0.98);
-  const topDomain = Math.ceil(maxPower * 1.02);
+  // calculate diff
+  const diffPower = maxPower - minPower;
+  // magnitude can be 0.01, 0.1, 1, 10, 100, etc.
+  const diffPowerMagnitude = Math.pow(10, Math.floor(Math.log10(diffPower)));
+  const topDomain = Math.ceil(maxPower / diffPowerMagnitude) * diffPowerMagnitude;
+  const bottomDomain = Math.floor(minPower / diffPowerMagnitude) * diffPowerMagnitude;
+  // tick is bottom domain + i * interval until top domain (total 6 ticks)
+  const ticks = Array.from({ length: 6 }, (_, i) => bottomDomain + i * (topDomain - bottomDomain) / 5);
+  
+  for (let i = 0; i < ticks.length; i++) {
+    ticks[i] = Math.round(ticks[i] * 100) / 100;
+  }
+
+  console.log("Ticks:", ticks);
 
   return (
     <motion.div
@@ -394,7 +406,7 @@ export default function Home() {
                 <Select
                   value={lantai}
                   onValueChange={setLantai}
-                  disabled={gedung === "all"}
+                  disabled={gedung === "all" || fakultas === "all"}
                 >
                   <SelectTrigger className="py-5">
                     <SelectValue
@@ -511,8 +523,11 @@ export default function Home() {
                                   tick={{ fontSize: 12 }}
                                   stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
                                   domain={[bottomDomain, topDomain]}
+                                  allowDecimals={false}
+                                  ticks={ticks}
                                   tickFormatter={(value) => `${value} kW`}
-                                />
+                                  // must fit tick in one line
+                                  />
 
                                 <Tooltip
                                   formatter={(value) => [`${value} kW`, "Power"]}
