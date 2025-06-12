@@ -265,9 +265,8 @@ export default function Home() {
       const currentMinute = new Date().getMinutes();
       if (currentMinute !== prevMinute.current) {
         console.log("Minute changed! Refetching data.");
-        setLoading(true);
+        // setLoading();
         fetchData();
-        fetchAnalysis();
         prevMinute.current = currentMinute;
       }
     }, 1000);
