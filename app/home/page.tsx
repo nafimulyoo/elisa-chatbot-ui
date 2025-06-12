@@ -79,7 +79,8 @@ interface Option {
 
 const formatTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  // no AM/PM, 24-hour format
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 };
 
 const ANALYSIS_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -511,20 +512,25 @@ export default function Home() {
                                   </linearGradient>
                                 </defs>
 
+                                {/* interval should adapt based on screen size */}
+
                                 <XAxis
                                   dataKey="formattedTime"
                                   tick={{ fontSize: 12 }}
                                   stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
-                                  interval={Math.floor(chartData.length / 10)}
+                                  // maxTicks={10}
+                                  minTickGap={20}
+                                  // interval={Math.floor(chartData.length / 10)}
                                 />
 
                                 <YAxis
                                   tick={{ fontSize: 12 }}
                                   stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
                                   domain={[bottomDomain, topDomain]}
-                                  allowDecimals={false}
-                                  ticks={ticks}
-                                  tickFormatter={(value) => `${value} kW`}
+                                  allowDecimals={true}
+                                  interval="preserveStartEnd"
+                                  // ticks={ticks}
+                                  padding={{ top: 10, bottom: 10 }}
                                   // must fit tick in one line
                                   />
 

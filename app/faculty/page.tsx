@@ -252,6 +252,9 @@ export default function FacultyComparison() {
                                     stroke: theme === "dark" ? "#1e293b" : "#f1f5f9",
                                     strokeWidth: 0,
                                   }}
+                                  // add kWh to tooltip value
+                                  formatter={(value: number) => `${value.toFixed(2)} kWh`}
+
                                 />
                                 <XAxis
                                   type="number"
@@ -260,15 +263,18 @@ export default function FacultyComparison() {
                                 <YAxis
                                   dataKey="fakultas"
                                   type="category"
-                                  width={50}
+                                  width={80}
+                                  // height={300}
                                   stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"}
                                   tick={{ fontSize: 12 }}
+                                  interval={0}
+                                  // gap
+                                  tickLine={true}
                                 />
-                                <Legend
-                                  wrapperStyle={{ color: '#f1f5f9' }} // slate-100 for legend text
-                                />
-                                <Bar dataKey="energy" fill="#1e9bb9" name="Energy (kWh)">
 
+                                <Bar dataKey="energy" fill="#1e9bb9" name="Energy"
+                                 height={50} radius={[0, 2, 2, 0]}>
+}
                                 </Bar>
 
                               </BarChart>
@@ -496,7 +502,7 @@ export default function FacultyComparison() {
                             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
                           }}
                         >
-                          Energy (kWh) {sortField === "energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                          Energy {sortField === "energy" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
                         </TableHead>
                         <TableHead
                           className="cursor-pointer"
@@ -505,7 +511,7 @@ export default function FacultyComparison() {
                             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
                           }}
                         >
-                          Cost (IDR) {sortField === "cost" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                          Cost {sortField === "cost" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
                         </TableHead>
                         <TableHead
                           className="cursor-pointer"
@@ -514,7 +520,7 @@ export default function FacultyComparison() {
                             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
                           }}
                         >
-                          Area (m²) {sortField === "area" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                          Area {sortField === "area" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
                         </TableHead>
                         <TableHead
                           className="cursor-pointer"
@@ -549,12 +555,12 @@ export default function FacultyComparison() {
                       {sortedInfo.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{item.faculty}</TableCell>
-                          <TableCell>{item.energy.toFixed(2)}</TableCell>
-                          <TableCell>{item.cost.toFixed(2)}</TableCell>
-                          <TableCell>{item.area.toFixed(2)}</TableCell>
-                          <TableCell>{item.ike.toFixed(2)}</TableCell>
+                          <TableCell>{formatNumber(item.energy)} kWh</TableCell>
+                          <TableCell>Rp{formatNumber(item.cost, 0)}</TableCell>
+                          <TableCell>{formatNumber(item.area)} m²</TableCell>
+                          <TableCell>{formatNumber(item.ike)}</TableCell>
                           <TableCell>{item.students}</TableCell>
-                          <TableCell>{(item.energy / item.students).toFixed(2)}</TableCell>
+                          <TableCell>{formatNumber(item.energy / item.students)} kWh</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

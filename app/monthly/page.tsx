@@ -412,7 +412,7 @@ export default function Home() {
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                           {/* Chart Section - Clustered Column Chart */}
                           <Card>
-                            <CardHeader> <CardTitle className=" font-semibold">Energy Consumption by Phase</CardTitle> </CardHeader>
+                            <CardHeader> <CardTitle className=" font-semibold">Energy Consumption by Phase (kWh)</CardTitle> </CardHeader>
                             <CardContent className="h-80">
                               <ResponsiveContainer width="100%" height="100%">
                                 {/* <BarChart
@@ -456,8 +456,8 @@ export default function Home() {
                                   }}
                                 >
 
-                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="date" />
-                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
+                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="date" interval="preserveEnd" minTickGap={20} />
+                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} interval="preserveStartEnd" padding={{ top: 10, bottom: 10 }} />
                                   <Tooltip
                                     contentStyle={{
                                       backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",

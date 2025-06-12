@@ -64,7 +64,7 @@ interface Option {
 }
 const formatTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
 const getLocalDateString = () => {
@@ -460,8 +460,8 @@ export default function Home() {
                                   }}
                                 >
 
-                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="time" />
-                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} />
+                                  <XAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} dataKey="time" interval="preserveEnd" minTickGap={20} />
+                                  <YAxis stroke={theme === "dark" ? "#dbe1e9" : "#0f1418"} interval="preserveStartEnd" padding={{ top: 10, bottom: 10 }} />
                                   <Tooltip
                                     contentStyle={{
                                       backgroundColor: theme === "dark" ? "#1e293b" : "#ffffff",
