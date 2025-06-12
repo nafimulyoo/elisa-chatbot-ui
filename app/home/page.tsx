@@ -172,30 +172,30 @@ export default function Home() {
   }, [fakultas]);
 
   // Fetch lantai options when gedung changes
-  // useEffect(() => {
-  //   if (gedung === "all") {
-  //     setLantai("all");
-  //     setLantaiOptions([]);
-  //     return;
-  //   }
+  useEffect(() => {
+    if (gedung === "all") {
+      setLantai("all");
+      setLantaiOptions([]);
+      return;
+    }
 
-  //   const fetchLantai = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
-  //       );
-  //       if (!response.ok) throw new Error('Failed to fetch lantai');
-  //       var data = await response.json();
-  //       data.lantai = data.lantai.filter((lantai: Option) =>
-  // lantai.value !== "Total");
-  //       setLantaiOptions(data.lantai || []);
-  //       setLantai("all");
-  //     } catch (err) {
-  //       console.error("Error fetching lantai:", err);
-  //     }
-  //   };
-  //   fetchLantai();
-  // }, [gedung, fakultas]);
+    const fetchLantai = async () => {
+      try {
+        const response = await fetch(
+          `${ANALYSIS_URL}/api/get-lantai?fakultas=${fakultas}&gedung=${gedung}`
+        );
+        if (!response.ok) throw new Error('Failed to fetch lantai');
+        var data = await response.json();
+        data.lantai = data.lantai.filter((lantai: Option) =>
+  lantai.value !== "Total");
+        setLantaiOptions(data.lantai || []);
+        setLantai("all");
+      } catch (err) {
+        console.error("Error fetching lantai:", err);
+      }
+    };
+    fetchLantai();
+  }, [gedung, fakultas]);
 
   const fetchAnalysis = async () => {
     setAnalysis("");
