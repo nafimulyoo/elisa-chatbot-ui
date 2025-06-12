@@ -274,7 +274,6 @@ export default function FacultyComparison() {
 
                                 <Bar dataKey="energy" fill="#1e9bb9" name="Energy"
                                  height={50} radius={[0, 2, 2, 0]}>
-}
                                 </Bar>
 
                               </BarChart>
